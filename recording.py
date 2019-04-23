@@ -7,12 +7,12 @@ import math
 
 def addnote(samplingrate,freq,resolution,alist):
     """
-    im cool
+    jeremy is retarded
     """
     noteduration = 1/samplingrate
-    totalstuff = int(noteduration*resolution) 
+    totalstuff = int(noteduration*resolution)
     period = resolution/freq
-    
+
     for dot in range(totalstuff):
         alist.append(math.cos(2*3.14/period*dot))
 
@@ -21,8 +21,8 @@ def addrest(samplingrate,resolution,alist):
     im cool
     """
     noteduration = 1/samplingrate
-    totalstuff = int(noteduration*resolution) 
-    
+    totalstuff = int(noteduration*resolution)
+
     for dot in range(totalstuff):
         alist.append(0)
 
@@ -59,5 +59,5 @@ def request_handler(request):
 
 
         array = np.array(alist)
-        scipy.io.wavfile.write('__home__/testfinal/music/test.wav', resolution, array)  #make unique string plz 
+        scipy.io.wavfile.write('__home__/testfinal/music/test.wav', resolution, array)  #make unique string plz
         return request['form']['recording']
