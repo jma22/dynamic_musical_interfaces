@@ -1,6 +1,21 @@
 import requests
-
-
+from os import listdir
+from os.path import isfile, join
+import base64
 def request_handler(request):
-    
-    return open('__HOME__/testfinal/website.html').read()
+
+    onlyfiles = [f for f in listdir("__HOME__/dynamic_musical_interfaces/wavs") if isfile(join("__HOME__/dynamic_musical_interfaces/wavs", f))]
+    basehtml = open('__HOME__/dynamic_musical_interfaces/website.html').read()
+    for f in onlyfiles:
+        fi = open("__HOME__/dynamic_musical_interfaces/wavs/"+f, 'rb')
+        base64string = base64.encodestring(fi.read()).decode("utf-8")
+        fi.close()
+        basehtml += """
+            <br>
+            {}
+            <audio controls>
+                <source src="data:audio/wav;base64, {}" type="audio/wav">
+            </audio>
+        """.format(f, base64string)
+    basehtml += "</body></html>"
+    return basehtml
