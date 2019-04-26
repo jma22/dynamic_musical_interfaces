@@ -2,8 +2,13 @@ import sqlite3
 import datetime
 import string
 import numpy
+# from recording import *
+import scipy.io.wavfile
+import numpy as np
+import math
 
-soundcloud = '__HOME__/project/soundcloud.db'  #database
+
+soundcloud = '__HOME__/soundcloud.db'  #database
 
 """
 database entry will contain timing, instrument name, string
@@ -12,6 +17,28 @@ rate of 8 hz?
 
 post request form: instrument=?&notes=?
 """
+
+
+def addnote(samplingrate,freq,resolution,alist):
+    """
+    jeremy is retarded
+    """
+    noteduration = 1/samplingrate
+    totalstuff = int(noteduration*resolution)
+    period = resolution/freq
+
+    for dot in range(totalstuff):
+        alist.append(math.cos(2*3.14/period*dot))
+
+def addrest(samplingrate,resolution,alist):
+    """
+    im cool
+    """
+    noteduration = 1/samplingrate
+    totalstuff = int(noteduration*resolution)
+
+    for dot in range(totalstuff):
+        alist.append(0)
 
 def request_handler(request):
     if request['method'] == 'POST':
@@ -40,14 +67,14 @@ def request_handler(request):
             c.execute('''INSERT into music_table VALUES (?,?,?);''', (datetime.datetime.now(),instrumentID,notes_str,))
             conn.commit() # commit commands
             conn.close() # close connection to database
-            return
+            return "added music"
         elif recording_times[1] == 0:
             #case when user input from website asked to stop recording
             #this will initialize creation of a wave file
-            c = conn.cursor()
-            c.execute('''DROP TABLE music_table;''')   #this deletes the music_table so that memory doesnt overflow
-            conn.commit() # commit commands
-            conn.close() # close connection to database
+            # c = conn.cursor()
+            # c.execute('''DROP TABLE music_table;''')   #this deletes the music_table so that memory doesnt overflow
+            # conn.commit() # commit commands
+            # conn.close() # close connection to database
             return "time to create a wave file"
 
     if request['method'] == 'GET':
@@ -56,11 +83,33 @@ def request_handler(request):
         music or not. this will be stored in a table "recording_table" within the soundcloud.
         entries: timing timestamp, recording integer (boolean does not exist in sqlite)
         """
-        recording = request['values']['recording']  #value sent by the server in a get request
+        recording = int(request['values']['recording'])  #value sent by the server in a get request
         conn = sqlite3.connect(soundcloud)  # connect to that database (will create if it doesn't already exist)
         c = conn.cursor()  # make cursor into database (allows us to execute commands)
         c.execute('''CREATE TABLE IF NOT EXISTS recording_table (timing timestamp, recording integer);''') # run a CREATE TABLE command
         c.execute('''insert into recording_table VALUES (?,?);''',(datetime.datetime.now(),recording,))
         conn.commit() # commit commands
+
+        # check if 1 first
+        if recording == 0:
+            c = conn.cursor()  # make cursor into database (allows us to execute commands)
+            music = c.execute('''SELECT * FROM music_table ORDER BY timing DESC;''').fetchall()   #takes in the last two items in recoridng_table
+            alist = []
+            # return music
+            for timing, instrument, notes in music:
+                for n in notes.split(" "):
+                    if n != "":
+                        ni = int(n)
+                        convert = {0: 440, 1: 493.8, 2: 523.25, 3: 587.33}
+                        if ni == 9:
+                            addrest(8, 44100, alist)
+                        else:
+                            addnote(8, convert[ni], 44100, alist)
+            array = np.array(alist)
+            scipy.io.wavfile.write('__HOME__/dynamic_musical_interfaces/wavs/test2.wav', 44100, array)
+            conn.commit() # commit commands
+            conn.close()
+            return  "you just added a recording bool 0 to the database"
         conn.close() # close connection to database
-        return  "you just added a recording bool to the database"
+
+        return  "you just added a recording bool 1 to the database"
