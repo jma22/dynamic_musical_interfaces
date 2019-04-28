@@ -1,51 +1,10 @@
 import sqlite3
-import time
 import string
-# from recording import *
-import scipy.io.wavfile
-import numpy as np
 import math
 
+import time
 
-soundcloud = '__HOME__/dynamic_musical_interfaces/soundcloud.db'  #database
-
-"""
-database entry will contain timing, instrument name, string
-containing numbers for each note value. Assuming a sampling
-rate of 8 hz?
-
-post request form: instrument=?&notes=?
-"""
-
-
-def addnote(samplingrate,freq,resolution,alist):
-    """
-    adds a note for a given amount of time
-    """
-    noteduration = 1/samplingrate
-    totalstuff = int(noteduration*resolution)
-    period = resolution/freq
-    counter = 0
-
-    for dot in range(totalstuff):
-        alist.append(np.int16(32767*math.cos(2*3.14/period*dot)))
-        
-        # if(counter==period):
-        #     alist.append(0.99)
-        #     counter = 0
-        # else:
-        #     alist.append(0)
-        #     counter +=1
-
-def addrest(samplingrate,resolution,alist):
-    """
-    adds a rest to the wave file
-    """
-    noteduration = 1/samplingrate
-    totalstuff = int(noteduration*resolution)
-
-    for dot in range(totalstuff):
-        alist.append(0)
+soundcloud = '__HOME__/project/soundcloud.db'  #database
 
 def request_handler(request):
     if request['method'] == 'POST':
@@ -82,7 +41,6 @@ def request_handler(request):
         music or not. this will be stored in a table "recording_table" within the soundcloud.
         entries: timing timestamp, recording integer (boolean does not exist in sqlite)
         """
-        
         recording = int(request['values']['recording'])  #value sent by the server in a get request
         conn = sqlite3.connect(soundcloud)  # connect to that database (will create if it doesn't already exist)
         c = conn.cursor()  # make cursor into database (allows us to execute commands)
@@ -90,19 +48,16 @@ def request_handler(request):
         c.execute('''CREATE TABLE IF NOT EXISTS recording_table (timing real, recording integer);''') # timing is now stored as floating point in seconds
         c.execute('''insert into recording_table VALUES (?,?);''',(time.time(),recording,))
         conn.commit() # commit commands
-<<<<<<< HEAD
-        
         # check if 1 first
-=======
->>>>>>> 0f87a04dac508558170dbaa58ec49a6abe81d966
         if recording == 0:
             c = conn.cursor()  # make cursor into database (allows us to execute commands)
             music = c.execute('''SELECT * FROM music_table ORDER BY timing ASC;''').fetchall()   #first notes inputed are at the top of the list
-            record_start, record_end = c.exectue('''SELECT timing FROM recording_table ORDER BY timing DESC LIMIT 2;''') #gets last two timestamps in the recording table
+            record_stop, record_start = c.execute('''SELECT * FROM recording_table ORDER BY timing DESC LIMIT 2;''') #gets last two timestamps in the recording table
             conn.commit()
+            record_stop = record_stop[0]
+            record_start = record_start[0]  #floating point values corresponding to number of seconds
             alist = []
-
-            music_dict = {}    #used to store strings of notes based on instrument name. Keys are strings of instrument names
+            music_dict = {}    #used to store strings of notes based on instrument name, hardcoded to make things easier
             for postings in music:
                 #construct a dictionary of instruments mapped to notes, taking into account the sync issues
                 try:
@@ -122,16 +77,8 @@ def request_handler(request):
                             music_dict[postings[1]].append(int(note))
             c.execute('''DROP TABLE music_table;''')    #delets the music table after the wave file is made. a new one is created each recording
             conn.close()
+            return music_dict["guitar"]
 
-            array = np.array(alist)
-            scipy.io.wavfile.write('__HOME__/dynamic_musical_interfaces/wavs/test2.wav', 44100, array)
-<<<<<<< HEAD
-            conn.commit() # commit commands
+        else:
             conn.close()
-            return "lmaokai"
-=======
-            return  "you just added a recording value 0 to the database"
->>>>>>> 0f87a04dac508558170dbaa58ec49a6abe81d966
-        conn.close() # close connection to database
-
-        return  "you just added a recording bool 1 to the database"
+            return "recording started"
