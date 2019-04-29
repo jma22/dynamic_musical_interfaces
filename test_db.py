@@ -67,15 +67,28 @@ def request_handler(request):
                             music_dict[postings[1]].append(int(note))
                 except:
                     #the first notes to be put in the wave file, need to be synced properly to the start time
-                    time_delta = postings[0] - record_start - len(postings[2])/8 #assumes the post request happens right after the last note was recorded at 8hz
-                    added_rests = math.ceil(time_delta*8)        #at 8Hz recording, for each second add 8 rests
-                    music_dict[postings[1]] = [0 for rest in range(added_rests)]  # adds a bunch of rests to the beginning of the instrument dictionary
+                    notes = postings[2].split(' ')      #list of strings of numbers that correspond to a note
+                    time_delta = math.floor((postings[0] - record_start)*8) - len(notes) #assumes the post request happens right after the last note was recorded at 8hz
+                    if time_delta > 0:
+                        added_rests = time_delta        #at 8Hz recording, for each second add 8 rests
+                        music_dict[postings[1]] = [0 for rest in range(added_rests)]  # adds a bunch of rests to the beginning of the instrument dictionary
+                    else:
+                        notes = notes[-time_delta:]   #truncates the notes list
+                        music_dict[postings[1]] = []    #the next line of code will add the notes in
 
-                    notes = postings[2].split(' ')
                     for note in notes:
                         if note != '':
                             music_dict[postings[1]].append(int(note))
+
+            ### addds zeros to the lists in the music dictionary for the empty time until the record stop
+            for key in music_dict.keys():
+                time_delta = record_stop - record_start
+                zeros_to_add = time_delta*8 - len(music_dict[key])         #assuming an 8Hz recording rate, so add 8 rests per second
+                for i in range(math.floor(zeros_to_add)):
+                    music_dict[key].append(0)   #adds a rest note to the dictionary
+
             c.execute('''DROP TABLE music_table;''')    #delets the music table after the wave file is made. a new one is created each recording
+            conn.commit()
             conn.close()
             return music_dict["guitar"]
 
