@@ -18,25 +18,6 @@ post request form: instrument=?&notes=?
 """
 
 
-def addnote(samplingrate,freq,resolution,alist):
-    """
-    adds a note for a given amount of time
-    """
-    noteduration = 1/samplingrate
-    totalstuff = int(noteduration*resolution)
-    period = resolution/freq
-    counter = 0
-
-    for dot in range(totalstuff):
-        alist.append(np.int16(32767*math.cos(2*3.14/period*dot)))
-        
-        # if(counter==period):
-        #     alist.append(0.99)
-        #     counter = 0
-        # else:
-        #     alist.append(0)
-        #     counter +=1
-
 def addrest(samplingrate,resolution,alist):
     """
     adds a rest to the wave file
@@ -46,6 +27,63 @@ def addrest(samplingrate,resolution,alist):
 
     for dot in range(totalstuff):
         alist.append(0)
+
+
+def addnote(samplingrate,freq,resolution,alist,duration):
+    """
+    input: samplingrate, freqtuple, resolution, alist, duration in sampling rates
+    output: adds a note,
+    """
+    noteduration = 1/samplingrate
+    totalstuff = int(noteduration*resolution)
+    dot = 0
+    period = resolution/freq
+    for dot in range(totalstuff*duration):
+        alist.append(math.sin(2*3.14/period*dot))
+
+def makeSong(songDict,channelnum):
+    noteDict = {0:0,1:261,2:294,3:330,4:349,5:392,6:440,7:494,8:523}
+    samplingrate = 8
+    resolution = 44100
+    musicdict = {}
+    #init empty dict
+
+    for j in songDict.keys():
+        musicdict[j] = []
+        templist = songDict[j]
+        print(templist)
+        counter = 1
+        lastnote = templist[0]
+        for note in templist:
+            currentnote = noteDict[note]
+            if lastnote != 0:
+                if lastnote == currentnote:
+                    counter+=1
+                else:
+                    addnote(samplingrate,lastnote,resolution,musicdict[j],counter)
+                    counter = 1
+            else:
+                addrest(samplingrate,resolution,musicdict[j])
+                counter = 1
+            lastnote = currentnote
+        currentnote = noteDict[templist[-1]]
+        lastnote = noteDict[templist[-2]]
+        if currentnote!=0:
+            addnote(samplingrate,currentnote,resolution,musicdict[j],counter)
+        else:
+            addrest(samplingrate,resolution,musicdict[j])
+    #sum songs
+    truemusic = []
+    lengthsong = len(musicdict[list(songDict.keys())[0]])
+
+    for num in range(lengthsong):
+        truemusic.append(0)
+        for index in songDict.keys():
+            truemusic[num]+= musicdict[index][num]/channelnum
+
+    print(lengthsong)
+    print(len(truemusic))
+    return truemusic
 
 def request_handler(request):
     if request['method'] == 'POST':
@@ -86,7 +124,7 @@ def request_handler(request):
         and inputedi n the 'music_dict', storing instrument:noteList, where noteList is a
         list of integers. after note are taken from the music table, the table is deleted
         """
-        
+
         recording = int(request['values']['recording'])  #value sent by the server in a get request
         conn = sqlite3.connect(soundcloud)  # connect to that database (will create if it doesn't already exist)
         c = conn.cursor()  # make cursor into database (allows us to execute commands)
@@ -132,12 +170,14 @@ def request_handler(request):
                 for i in range(math.floor(zeros_to_add)):
                     music_dict[key].append(0)   #adds a rest note to the dictionary
 
+
             c.execute('''DROP TABLE music_table;''')    #delets the music table after the wave file is made. a new one is created each recording
             conn.commit()
             conn.close()
 
+            alist = makeSong(music_dict, len(music_dict.keys()))
             array = np.array(alist)
-            scipy.io.wavfile.write('__HOME__/dynamic_musical_interfaces/wavs/test2.wav', 44100, array)
+            scipy.io.wavfile.write('__HOME__/dynamic_musical_interfaces/wavs/'+str(time.time())+'.wav', 44100, array)
             return  "you just added a recording value 0 to the database"
         conn.close() # close connection to database
 

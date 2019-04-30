@@ -17,21 +17,21 @@ def addrest(samplingrate,resolution,alist):
     for dot in range(totalstuff):
         alist.append(0)
 
-        
+
 def addnote(samplingrate,freq,resolution,alist,duration):
     """
     input: samplingrate, freqtuple, resolution, alist, duration in sampling rates
     output: adds a note,
     """
     noteduration = 1/samplingrate
-    totalstuff = int(noteduration*resolution) 
+    totalstuff = int(noteduration*resolution)
     dot = 0
     period = resolution/freq
     for dot in range(totalstuff*duration):
         alist.append(math.sin(2*3.14/period*dot))
 
-    
-    
+
+
     # if freq[1] ==0:
     #     period1 = resolution/freq[0]
     #     for dot in range(totalstuff*duration):
@@ -47,17 +47,17 @@ def addnote(samplingrate,freq,resolution,alist,duration):
     #     period3 = resolution/freq[2]
     #     for dot in range(totalstuff*duration):
     #         alist.append((math.cos(2*3.14/period1*dot))+(math.cos(2*3.14/period2*dot))+(math.cos(2*3.14/period3*dot)))
-    
+
 def makeSong(songDict,channelnum):
     noteDict = {0:0,1:261,2:294,3:330,4:349,5:392,6:440,7:494,8:523}
     samplingrate = 8
     resolution = 44100
     musicdict = {}
     #init empty dict
-    
+
     for j in range(channelnum):
         musicdict[j] = []
-        templist = songDict[j] 
+        templist = songDict[j]
         print(templist)
         counter = 1
         lastnote = templist[0]
@@ -79,25 +79,20 @@ def makeSong(songDict,channelnum):
             addnote(samplingrate,currentnote,resolution,musicdict[j],counter)
         else:
             addrest(samplingrate,resolution,musicdict[j])
-        
-        
-    
-
-
     #sum songs
     truemusic = []
     lengthsong = len(musicdict[0])
-    
+
     for num in range(lengthsong):
         truemusic.append(0)
         for index in range(channelnum):
             truemusic[num]+= musicdict[index][num]/channelnum
-    
+
     print(lengthsong)
     print(len(truemusic))
     return truemusic
-    
-            
+
+
 
 
 
@@ -188,7 +183,7 @@ frequency = 140
 # 0:[2,2,2,2,2,2,2,2,2,2,2,2,2]
 
 c = makeSong({0:[1,1,0,0,1,1,0,0],1:[5,5,5,5,5,5,5,5]},2)
-array = np.array(c)   
+array = np.array(c)
 
 # data, fs = sf.read(array)
 # print(data.shape)
@@ -197,5 +192,3 @@ scipy.io.wavfile.write('../test1.wav', 44100, array)
 sd.play(array, fs,blocking =True)
 pp.plot(array)
 pp.show()
-
-
