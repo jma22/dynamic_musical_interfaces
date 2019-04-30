@@ -13,3 +13,8 @@ $.ajax({type: "POST",
         success: function(result){
 $("h1").html(result);
 }});})
+
+
+function changeUrl(url) {
+    document.getElementsByName('iFrameName')[0].src = url;
+}
