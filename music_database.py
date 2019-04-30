@@ -90,11 +90,6 @@ def request_handler(request):
         c.execute('''CREATE TABLE IF NOT EXISTS recording_table (timing real, recording integer);''') # timing is now stored as floating point in seconds
         c.execute('''insert into recording_table VALUES (?,?);''',(time.time(),recording,))
         conn.commit() # commit commands
-<<<<<<< HEAD
-        
-        # check if 1 first
-=======
->>>>>>> 0f87a04dac508558170dbaa58ec49a6abe81d966
         if recording == 0:
             c = conn.cursor()  # make cursor into database (allows us to execute commands)
             music = c.execute('''SELECT * FROM music_table ORDER BY timing ASC;''').fetchall()   #first notes inputed are at the top of the list
@@ -125,13 +120,7 @@ def request_handler(request):
 
             array = np.array(alist)
             scipy.io.wavfile.write('__HOME__/dynamic_musical_interfaces/wavs/test2.wav', 44100, array)
-<<<<<<< HEAD
-            conn.commit() # commit commands
-            conn.close()
-            return "lmaokai"
-=======
             return  "you just added a recording value 0 to the database"
->>>>>>> 0f87a04dac508558170dbaa58ec49a6abe81d966
         conn.close() # close connection to database
 
         return  "you just added a recording bool 1 to the database"

@@ -1,1 +1,1 @@
-te('../wavs/te
+sicdic
