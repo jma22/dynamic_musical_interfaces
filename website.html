@@ -1,14 +1,98 @@
 <!DOCTYPE html>
 <html>
     <head>
-            <link rel="stylesheet" href="index.css">
+            <style>body {
+                    /* background-color: black; */
+                    background-image: linear-gradient( rgb(26, 26, 27), #0000009b);
+                    background-repeat: no-repeat;
+                    background-size: 100% 100%;
+                    height:100vh;
+                    margin: 0;
+                    overflow: hidden
+                  }
+                
+                #title{
+                    position: relative;
+                    width: 100vw;
+                    text-align: center;
+                    font-size: 60px;
+                    font-family: 'Saira', sans-serif;
+                    color: rgba(30, 223, 133, 0.7);
+                    top: 10px;
+                }
+                
+                #record{
+                    color:rgb(194, 47, 47);
+                    top: 5vh;
+                    left: 10vw;
+                    position: relative;
+                }
+                
+                #record:hover {
+                    cursor: pointer;
+                }
+                
+                #stop{
+                    color:rgb(0, 0, 0);
+                    top: 5vh;
+                    left: 15vw;
+                    position: relative;
+                }
+                
+                #stop:hover {
+                    cursor: pointer;
+                }
+                
+                #status{
+                    font-size: 30px;
+                    top: 12vh;
+                    left: 3vw;
+                    position: relative;
+                    color: rgba(30, 223, 133, 0.7);
+                    font-family: 'Saira', sans-serif;
+                }
+                
+                #player{
+                    top: 40vh;
+                    left: -3vw;
+                    position: relative;
+                    border:0px;
+                    width: 1100px;
+                }
+                
+                #list{
+                    top: -5vh;
+                    left: 60vw;
+                    position: relative;
+                    width: 30vw;
+                    height: 200px;
+                    overflow:hidden; 
+                    overflow-y:scroll;
+                }
+                #list li{
+                    background-color: aqua;
+                    color: black;
+                    font-size: 30px;
+                }
+                ::-webkit-scrollbar {
+                width: 0px;}
+                </style>
+            <link href="https://fonts.googleapis.com/css?family=Saira" rel="stylesheet">
+            <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
             <title>edge</title>
             <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+            
     </head>
     <body>
-        <button type="button" id = "record">Record</button>
-        <button type="button" id = "stop">Stop</button>
-        <h1>status</h1>
-        <iframe name="iFrameName"></iframe>
+        
+        <div id= "title"> Dynamic Musical Interfaces</div>
+        <i class="fas fa-circle fa-4x" id = "record"></i>
+        <i class="fas fa-square-full fa-4x" id = "stop"></i>
+        <inline id = "status">Status: Idle</inline>
+        <iframe name="iFrameName" id ="player"></iframe>
+        <ul style="list-style-type:none;" id = "list">
+            
+            
+        
 
-        <script src="../dynamic_musical_interfaces/website.js"></script>
+        

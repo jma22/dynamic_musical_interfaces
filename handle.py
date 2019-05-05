@@ -17,9 +17,12 @@ def request_handler(request):
     #             <source src="data:audio/wav;base64, {}" type="audio/wav">
     #         </audio>
     #     """.format(f, base64string)
+    i=0
+    onlyfiles.sort()
     for f in onlyfiles:
+        i+=1
         basehtml += """
-            <button onclick=changeUrl("/sandbox/sc/kvfrans/dynamic_musical_interfaces/play.py?wav={}")>{}</button>
-        """.format(f,f)
-    basehtml += "</body></html>"
+            <li onclick=changeUrl("/sandbox/sc/kvfrans/dynamic_musical_interfaces/play.py?wav={}")>wav{}.wav</li>
+        """.format(f,i)
+    basehtml += "<script src=\"../dynamic_musical_interfaces/website.js\"></script></ul></body></html>"
     return basehtml
