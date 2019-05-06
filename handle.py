@@ -24,5 +24,5 @@ def request_handler(request):
         basehtml += """
             <li onclick=changeUrl("/sandbox/sc/kvfrans/dynamic_musical_interfaces/play.py?wav={}")>wav{}.wav</li>
         """.format(f,i)
-    basehtml += "<script src=\"../dynamic_musical_interfaces/website.js\"></script></ul></body></html>"
+    basehtml += "</ul><iframe name=\"iFrameName\" id =\"player\"></iframe><script src=\"../dynamic_musical_interfaces/website.js\"></script></body></html>"
     return basehtml

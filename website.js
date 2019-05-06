@@ -12,6 +12,12 @@ $.ajax({type: "GET",
 $("#status").html("Status:" + result);
 }});})
 
+$('#list li').click(function(){
+        $(this).css('background-color','rgb(47, 235, 131)')
+        $('#list li').not(this).css('background-color','#FFDFA6')
+})
+        
+
 
 function changeUrl(url) {
     document.getElementsByName('iFrameName')[0].src = url;
