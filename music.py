@@ -55,7 +55,7 @@ def makeSong(songDict,channelnum):
     musicdict = {}
     #init empty dict
 
-    for j in range(channelnum):
+    for j in songDict.keys():
         musicdict[j] = []
         templist = songDict[j]
         print(templist)
@@ -81,11 +81,11 @@ def makeSong(songDict,channelnum):
             addrest(samplingrate,resolution,musicdict[j])
     #sum songs
     truemusic = []
-    lengthsong = len(musicdict[0])
+    lengthsong = len(musicdict[list(songDict.keys())[0]])
 
     for num in range(lengthsong):
         truemusic.append(0)
-        for index in range(channelnum):
+        for index in songDict.keys():
             truemusic[num]+= musicdict[index][num]/channelnum
 
     print(lengthsong)
@@ -128,67 +128,28 @@ frequency = 140
 #sin wave
     # alist.append(math.cos(2*3.14/frequency*second))
 
-#onephrase megalovanie
-# addnote(147,0.25,alist)
-# addnote(147,0.25,alist)
-# addnote(294,0.25,alist)
-# addnote(1,0.25,alist)
-# addnote(220,0.75,alist)
-# addnote(207,0.25,alist)
-# addnote(1,0.25,alist)
-# addnote(196,0.5,alist)
-# addnote(174,0.5,alist)
-# addnote(147,0.25,alist)
-# addnote(174,0.25,alist)
-# addnote(196,0.25,alist)
-# #two
-# addnote(130,0.25,alist)
-# addnote(130,0.25,alist)
-# addnote(294,0.25,alist)
-# addnote(1,0.25,alist)
-# addnote(220,0.75,alist)
-# addnote(207,0.25,alist)
-# addnote(1,0.25,alist)
-# addnote(196,0.5,alist)
-# addnote(174,0.5,alist)
-# addnote(147,0.25,alist)
-# addnote(174,0.25,alist)
-# addnote(196,0.25,alist)
-# #three
-# addnote(123,0.25,alist)
-# addnote(123,0.25,alist)
-# addnote(294,0.25,alist)
-# addnote(1,0.25,alist)
-# addnote(220,0.75,alist)
-# addnote(207,0.25,alist)
-# addnote(1,0.25,alist)
-# addnote(196,0.5,alist)
-# addnote(174,0.5,alist)
-# addnote(147,0.25,alist)
-# addnote(174,0.25,alist)
-# addnote(196,0.25,alist)
-# #four
-# addnote(116,0.25,alist)
-# addnote(116,0.25,alist)
-# addnote(294,0.25,alist)
-# addnote(1,0.25,alist)
-# addnote(220,0.75,alist)
-# addnote(207,0.25,alist)
-# addnote(1,0.25,alist)
-# addnote(196,0.5,alist)
-# addnote(174,0.5,alist)
-# addnote(147,0.25,alist)
-# addnote(174,0.25,alist)
-# # addnote(196,0.25,alist)
-# 0:[2,2,2,2,2,2,2,2,2,2,2,2,2]
 
-c = makeSong({0:[1,1,0,0,1,1,0,0],1:[5,5,5,5,5,5,5,5]},2)
-array = np.array(c)
+
+import matplotlib.pyplot as plt
+t = np.arange(100)
+
+
+sp = np.fft.fft(np.sin(8*t))
+freq = np.fft.fftfreq(t.shape[-1])
+print(freq)
+
+plt.plot(freq, sp)
+
+plt.show()
+
+c = makeSong({'lmao':[1,1,0,0,1,1,0,0]},1)
+array = np.array(c, dtype=np.float32)
 
 # data, fs = sf.read(array)
-# print(data.shape)
-scipy.io.wavfile.write('../test1.wav', 44100, array)
+# print(np.mean(array))
+# print(array.dtype)
+# scipy.io.wavfile.write('../test3.wav', 44100, array)
 
-sd.play(array, fs,blocking =True)
-pp.plot(array)
-pp.show()
+# sd.play(array, fs,blocking =True)
+# pp.plot(array)
+# pp.show()

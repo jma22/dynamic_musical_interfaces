@@ -1,0 +1,72 @@
+/* UNused */
+
+body {
+    /* background-color: black; */
+    background-image: linear-gradient( rgb(26, 26, 27), #0000009b);
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    height:100vh;
+    margin: 0;
+    
+  }
+
+#title{
+    position: relative;
+    width: 100vw;
+    text-align: center;
+    font-size: 60px;
+    font-family: 'Saira', sans-serif;
+    color: rgba(30, 223, 133, 0.7);
+    top: 10px;
+}
+
+#record{
+    color:rgb(194, 47, 47);
+    top: 15vh;
+    left: 10vw;
+    position: relative;
+}
+
+#record:hover {
+    cursor: pointer;
+}
+
+#stop{
+    color:rgb(0, 0, 0);
+    top: 15vh;
+    left: 15vw;
+    position: relative;
+}
+
+#stop:hover {
+    cursor: pointer;
+}
+
+#status{
+    font-size: 30px;
+    top: 20vh;
+    left: 10vw;
+    position: relative;
+    color: rgba(30, 223, 133, 0.7);
+    font-family: 'Saira', sans-serif;
+}
+
+#player{
+    top: 30vh;
+    left: -3vw;
+    position: relative;
+    border:0px;
+}
+
+#list{
+    top: 0vh;
+    left: 60vw;
+    position: relative;
+    width: 30vw;
+    height: 10px;
+}
+#list li{
+    background-color: aqua;
+    color: black;
+    font-size: 30px;
+}
