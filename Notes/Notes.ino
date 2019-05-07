@@ -1,7 +1,9 @@
-#include <WiFi.h> //Connect to WiFi Network
 #include <TFT_eSPI.h> // Graphics and font library for ST7735 driver chip
 #include <SPI.h> //Used in support of TFT Display
 #include <string.h>  //used for some string handling and processing.
+#include <mpu9255_esp32.h>
+#include<math.h>
+#include <WiFi.h> //Connect to WiFi NetworkTFT_eSPI tft = TFT_eSPI();  // Invoke library, pins defined in User_Setup.h
 
 TFT_eSPI tft = TFT_eSPI();  // Invoke library, pins defined in User_Setup.h
 
@@ -52,6 +54,11 @@ const uint8_t posting=10000;
 uint32_t primary_timer = 0;
 uint32_t posting_timer = 0;
 
+int freq = 2000;
+int channel = 0;
+int resolution = 8;
+
+
 //Some constants and some resources:
 const int RESPONSE_TIMEOUT = 6000; //ms to wait for response from host
 
@@ -73,6 +80,35 @@ void unblocked_http_request(char* host, char* request, char* response, uint16_t 
   }
 }
 
+void  change_frequency(int note)  {
+  switch(note)  {
+    case 0:
+      ledcWriteTone(channel,0);
+      break;
+    case 1:
+      ledcWriteTone(channel,262); //Low c
+      break;
+    case 2:
+      ledcWriteTone(channel,294); //Low d
+      break;
+    case 3:
+      ledcWriteTone(channel,330); //Low d
+      break;
+    case 4:
+      ledcWriteTone(channel,349); //Low d
+      break;
+    case 5:
+      ledcWriteTone(channel,392); //Low d
+      break;
+    case 6:
+      ledcWriteTone(channel,440); //Low d
+      break;
+    case 7:
+      ledcWriteTone(channel,494); //Low d
+      break;
+  }
+}
+
 void setup() {
   Serial.begin(115200);
   tft.init();  //init screen
@@ -86,6 +122,11 @@ void setup() {
   pinMode(PIN_3,INPUT_PULLUP);
   pinMode(trigPIN,OUTPUT);
   pinMode(echoPIN,INPUT);
+
+  ledcSetup(channel, freq, resolution);
+  ledcAttachPin(27, channel);   //buzzer needs to be on pin 27
+  ledcWrite(channel,10);
+
   WiFi.begin(network,password); //attempt to connect to wifi
   uint8_t count = 0; //count used for Wifi check times
   Serial.print("Attempting to connect to ");
@@ -126,28 +167,38 @@ void loop() {
   if (distance>3 && distance<11){
     strum=true;
     strcat(notes,"0 ");
-  } 
+  }
   //Notes:
+  int note_num;
   if ((millis()-rtimer)>125 && strum){
     if (!b1 && !b2 && !b3){
       strcat(notes,"7 ");
+      note_num = 7;
     } else if (!b1 && !b3){
       strcat(notes,"6 ");
+      note_num = 6;
     } else if (!b2 && !b3){
       strcat(notes,"5 ");
+      note_num = 5;
     } else if (!b1 && !b2){
       strcat(notes,"4 ");
+      note_num = 4;
     } else if (!b3){
       strcat(notes,"3 ");
+      note_num = 3;
     } else if (!b2){
       strcat(notes,"2 ");
+      note_num = 2;
     } else if (!b1){
       strcat(notes,"1 ");
+      note_num = 1;
     } else {
       strcat(notes,"0 ");
       strum=false;
+      note_num = 0;
     }
     rtimer=millis();
+    change_frequency(note_num); //changes the note
   }
   if ((millis()-ptimer)>10000){
     Serial.println("POST");
