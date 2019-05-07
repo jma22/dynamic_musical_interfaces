@@ -176,7 +176,7 @@ def request_handler(request):
             conn.close()
 
             alist = makeSong(music_dict, len(music_dict.keys()))
-            array = np.array(alist)
+            array = np.array(alist, dtype=np.float32)
             scipy.io.wavfile.write('__HOME__/dynamic_musical_interfaces/wavs/'+str(time.time())+'.wav', 44100, array)
             return  "you just added a recording value 0 to the database"
         conn.close() # close connection to database
