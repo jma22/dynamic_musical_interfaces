@@ -43,6 +43,7 @@ uint32_t post_timer;
 
 int distance; //distance will be used to record how far the hand is from the theremin
 int note_num;
+int note_num0;    //used to prevent writing to same tone to the speaker
 
 
 //UI vars
@@ -65,31 +66,34 @@ void unblocked_http_request(char* host, char* request, char* response, uint16_t 
 }
 
 void  change_frequency(int note)  {
-  switch(note)  {
-    case 0:
-      ledcWriteTone(channel,0);
-      break;
-    case 1:
-      ledcWriteTone(channel,262*2); //Low c
-      break;
-    case 2:
-      ledcWriteTone(channel,294*2); //Low d
-      break;
-    case 3:
-      ledcWriteTone(channel,330*2); //Low d
-      break;
-    case 4:
-      ledcWriteTone(channel,349*2); //Low d
-      break;
-    case 5:
-      ledcWriteTone(channel,392*2); //Low d
-      break;
-    case 6:
-      ledcWriteTone(channel,440*2); //Low d
-      break;
-    case 7:
-      ledcWriteTone(channel,494*2); //Low d
-      break;
+  if (note != note_num0)  {
+    note_num0 = note;
+    switch(note)  {
+      case 0:
+        ledcWriteTone(channel,0);
+        break;
+      case 1:
+        ledcWriteTone(channel,262*2); //Low c
+        break;
+      case 2:
+        ledcWriteTone(channel,294*2); //Low d
+        break;
+      case 3:
+        ledcWriteTone(channel,330*2); //Low d
+        break;
+      case 4:
+        ledcWriteTone(channel,349*2); //Low d
+        break;
+      case 5:
+        ledcWriteTone(channel,392*2); //Low d
+        break;
+      case 6:
+        ledcWriteTone(channel,440*2); //Low d
+        break;
+      case 7:
+        ledcWriteTone(channel,494*2); //Low d
+        break;
+    }
   }
 }
 
@@ -240,6 +244,7 @@ void setup(){
     }
     sampling_timer = millis();
     post_timer = millis();
+    note_num0 = 0;
     ui_state = 0;   //ui state starts on the startup state
     recording_flag = 0;   //set to 0 initially, only set to 1 once an instrument is selected
     Serial.println("setup done");
