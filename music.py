@@ -1,6 +1,6 @@
 import sounddevice as sd
 import numpy as np
-# import soundfile as sf
+import soundfile as sf
 import matplotlib.pyplot as pp
 import math
 import scipy.io.wavfile
@@ -131,25 +131,123 @@ frequency = 140
 
 
 import matplotlib.pyplot as plt
-t = np.arange(100)
+import numpy as np
+from numpy.fft import fft, fftfreq, ifft
 
 
-sp = np.fft.fft(np.sin(8*t))
-freq = np.fft.fftfreq(t.shape[-1])
-print(freq)
+testnote = []
+addnote(8,440,44100,testnote,8)
+testlen = np.linspace(0,1,len(testnote))
 
-plt.plot(freq, sp)
+# n = 1000
 
-plt.show()
+# T = 100
+
+# omg = 2*np.pi/T
+
+# x = np.linspace(0,T,n)
+
+# y1 = np.cos(1.0*omg*x)
+# y2 = np.cos(100.0*omg*x)
+# y3 = np.sin(20.0*omg*x)
+
+# y=y2
+# freqs = fftfreq(n)
+
+# mask = freqs > 0
+
+# fft_vals = fft(y)
+
+# ifft_vals = ifft(fft_vals)
+
+# print(ifft_vals)
+
+# fft_theo = 2*np.abs(fft_vals/n)
+
+
+testnotefreqs = fftfreq(len(testnote))
+mask = testnotefreqs > 0
+testnotefftvals = fft(testnote)
+testnotefft_theo = 2*np.abs(testnotefftvals/len(testnote))
+testfft_vals = []
+testnoteifftvals = ifft(testnotefftvals)
+for i in range(44100):
+    testfft_vals.append(0)
+
+# #violin
+# testfft_vals[440]=44100
+# testfft_vals[440*2]=44100/4
+# testfft_vals[440*3]=44100/8
+# testfft_vals[440*4]=44100*3/16
+# testfft_vals[440*5]=44100/2
+# testfft_vals[440*6]=44100/4
+# testfft_vals[440*7]=44100*11/16
+# testfft_vals[440*8]=44100/2
+# testfft_vals[440*9]=44100*3/16
+#piano
+# testfft_vals[220]=44100*16/100
+# testfft_vals[330]=44100*8/100
+# testfft_vals[440]=44100
+# testfft_vals[440*2]=44100*1/10
+# testfft_vals[440*3]=44100*36/100
+# testfft_vals[440*4]=44100*7/100
+# testfft_vals[440*5]=44100*6/100
+# testfft_vals[440*6]=44100*5/100
+# testfft_vals[440*2-1]=44100*7/10/4
+# testfft_vals[440*3-1]=44100*15/100/4
+# testfft_vals[440*4-1]=44100*2/100/4
+# testfft_vals[440*5-1]=44100*4/100/4
+
+# #oboe
+testfft_vals[220]=44100
+testfft_vals[220*2]=44100*9/10
+testfft_vals[220*3]=44100*22/10
+testfft_vals[220*4]=44100*2/10
+testfft_vals[220*5]=44100*22/100
+testfft_vals[220*6]=44100*23/100
+# testfft_vals[440*7]=44100*60/100
+# testfft_vals[440*8]=44100*30/100
+# testfft_vals[440*9]=44100*23/100
+
+testifft_vals = ifft(testfft_vals)
+lasti=0
+j = 0
+positivevals = testnotefft_theo[mask]
+for i in positivevals:
+    if lasti < i:
+        print(i)
+        print(j)
+    lasti = i
+    j+=1
+
+print(len(testnoteifftvals))
+
+# plt.figure(1)
+# plt.title('original signal')
+# plt.plot(testnotefreqs[mask],testnotefft_theo[mask],color = 'xkcd:salmon')
+
+# plt.figure(2)
+# plt.plot(testlen,testnoteifftvals, label = "raw")
+# plt.title("raw fft")
+# plt.plot(freqs[mask],fft_theo[mask], label ="true")
+# plt.title("true fft")
+
+# plt.show()
+
+
 
 c = makeSong({'lmao':[1,1,0,0,1,1,0,0]},1)
-array = np.array(c, dtype=np.float32)
+array = testifft_vals.real[0:11025]
+# array = np.array(c, dtype=np.float32)
 
 # data, fs = sf.read(array)
 # print(np.mean(array))
 # print(array.dtype)
-# scipy.io.wavfile.write('../test3.wav', 44100, array)
+scipy.io.wavfile.write('./test3.wav', 44100, array)
 
-# sd.play(array, fs,blocking =True)
-# pp.plot(array)
-# pp.show()
+sd.play(array, 44100,blocking =True)
+sd.play(array, 44100,blocking =True)
+sd.play(array, 44100,blocking =True)
+sd.play(array, 44100,blocking =True)
+plt.plot(array)
+plt.show()
