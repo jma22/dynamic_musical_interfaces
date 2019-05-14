@@ -301,7 +301,6 @@ void loop() {
       change_frequency(note_num);
       sampling_timer = millis();
     }
-    //
     if ((millis()-post_timer)>125){
       Serial.println("POST");
       //POST:

@@ -118,6 +118,117 @@ void  change_frequency(int note)  {
   }
 }
 
+void ui_updater() {
+  switch(ui_state)  {
+    case 0:
+      //startup ui state
+      Serial.println("writing the ui on the screen");
+      tft.drawString("Instrument Selection",0,0,1);
+      tft.drawString("Theremin",0,10,1);
+      tft.drawString("piano",0,20,1);
+      tft.drawString("oboe",0,30,1);
+      tft.drawString("guitar",0,40,1);
+      ui_state = 1;
+      break;
+    case 1:
+      //player can hover over the text using a button to select which instrument to play
+      if (digitalRead(PIN_1) == 0) {
+        //button is pushed
+        Serial.println("button is pushed, selecting an instrument");
+        ui_state = 2;
+      }
+      if (digitalRead(PIN_2) == 0) {
+        ui_state = 4;
+      }
+      break;
+    case 2:
+      if (digitalRead(PIN_1) == 1) {
+        button_count ++;
+      }
+      ui_state = 3;
+      break;
+    case 3:
+      switch(button_count%4)  {
+        case 0:
+          tft.setTextColor(TFT_GREEN, TFT_BLUE);
+          tft.drawString("Theremin",0,10,1);
+
+          tft.setTextColor(TFT_GREEN, TFT_BLACK);
+          tft.drawString("piano",0,20,1);
+          tft.drawString("oboe",0,30,1);
+          tft.drawString("guitar",0,40,1);
+          break;
+        case 1:
+          tft.setTextColor(TFT_GREEN, TFT_BLUE);
+          tft.drawString("piano",0,20,1);
+
+          tft.setTextColor(TFT_GREEN, TFT_BLACK);
+          tft.drawString("Theremin",0,10,1);
+          tft.drawString("oboe",0,30,1);
+          tft.drawString("guitar",0,40,1);
+          break;
+        case 2:
+          tft.setTextColor(TFT_GREEN, TFT_BLUE);
+          tft.drawString("oboe",0,30,1);
+
+          tft.setTextColor(TFT_GREEN, TFT_BLACK);
+          tft.drawString("Theremin",0,10,1);
+          tft.drawString("piano",0,20,1);
+          tft.drawString("guitar",0,40,1);
+          break;
+        case 3:
+          tft.setTextColor(TFT_GREEN, TFT_BLUE);
+          tft.drawString("guitar",0,40,1);
+
+          tft.setTextColor(TFT_GREEN, TFT_BLACK);
+          tft.drawString("Theremin",0,10,1);
+          tft.drawString("piano",0,20,1);
+          tft.drawString("oboe",0,30,1);
+          break;
+      }
+      ui_state = 1;
+      break;
+    case 4:
+      Serial.println(button_count);
+      switch(button_count%4)  {
+        case 0:
+          sprintf(instrument,"theremin");
+          break;
+        case 1:
+          sprintf(instrument, "piano");
+          break;
+        case 2:
+          sprintf(instrument,"oboe");
+          break;
+        case 3:
+          sprintf(instrument, "guitar");
+          break;
+      }
+      Serial.println(instrument);
+      tft.fillScreen(TFT_BLACK); //fill background
+      tft.drawString("Selected Instrument:",0,0,1);
+      tft.drawString(instrument,0,10,1);
+      tft.drawString("Current Note:",0,30,1);
+      recording_flag = 1;
+      ui_state = 5;
+      break;
+    case 5:
+      //will print what note you are playing at the moment
+      char alphabet[] = "CDEFGAB";
+      if (note_num == 0)  {
+        tft.fillRect(15,40,50,80,TFT_BLACK);
+      }
+      else  {
+        char screen_note[2];
+        screen_note[0] = alphabet[note_num-1];
+        screen_note[1] = '\0';
+        tft.setTextSize(10); //default font size
+        tft.drawString(screen_note,15,50,1);
+      }
+      break;
+  }
+}
+
 void setup() {
   Serial.begin(115200);
   tft.init();  //init screen
@@ -159,82 +270,87 @@ void setup() {
   }
   rtimer=millis();
   ptimer=millis();
+  ui_state = 0;   //ui state starts on the startup state
+  recording_flag = 0;   //set to 0 initially, only set to 1 once an instrument is selected
   digitalWrite(trigPIN,LOW);
 }
 
 void loop() {
-  Serial.println("Buttons:");
-  b1=digitalRead(PIN_1);
-  Serial.println(b1);
-  b2=digitalRead(PIN_2);
-  Serial.println(b2);
-  b3=digitalRead(PIN_3);
-  Serial.println(b3);
-  b4=digitalRead(PIN_4);
-  Serial.println(b4);
-  b5=digitalRead(PIN_5);
-  Serial.println(b5);
-  //Strumming:
-  durationtimer=millis();
-  digitalWrite(trigPIN,HIGH);
-  while (millis()-durationtimer < dtime);
-  digitalWrite(trigPIN,LOW);
-  duration=pulseIn(echoPIN,HIGH);
-  distance=duration*.034/2;
-  //Serial.println("Distance: ");
-  //Serial.println(distance);
-  if (distance>3 && distance<11){
-    strum=true;
-    strcat(notes,"0 ");
-  }
-  //Notes:
-  int note_num;
-  if ((millis()-rtimer)>125 && strum){
-    if (!b4 && !b5){
-      strcat(notes,"7 ");
-      note_num = 7;
-    } else if (!b1 && !b2){
-      strcat(notes,"6 ");
-      note_num = 6;
-    } else if (!b5){
-      strcat(notes,"5 ");
-      note_num = 5;
-    } else if (!b4){
-      strcat(notes,"4 ");
-      note_num = 4;
-    } else if (!b3){
-      strcat(notes,"3 ");
-      note_num = 3;
-    } else if (!b2){
-      strcat(notes,"2 ");
-      note_num = 2;
-    } else if (!b1){
-      strcat(notes,"1 ");
-      note_num = 1;
-    } else {
+  if (recording_flag == 1)  {
+    Serial.println("Buttons:");
+    b1=digitalRead(PIN_1);
+    Serial.println(b1);
+    b2=digitalRead(PIN_2);
+    Serial.println(b2);
+    b3=digitalRead(PIN_3);
+    Serial.println(b3);
+    b4=digitalRead(PIN_4);
+    Serial.println(b4);
+    b5=digitalRead(PIN_5);
+    Serial.println(b5);
+    //Strumming:
+    durationtimer=millis();
+    digitalWrite(trigPIN,HIGH);
+    while (millis()-durationtimer < dtime);
+    digitalWrite(trigPIN,LOW);
+    duration=pulseIn(echoPIN,HIGH);
+    distance=duration*.034/2;
+    //Serial.println("Distance: ");
+    //Serial.println(distance);
+    if (distance>3 && distance<11){
+      strum=true;
       strcat(notes,"0 ");
-      strum=false;
-      note_num = 0;
     }
-    rtimer=millis();
-    change_frequency(note_num); //changes the note
+    //Notes:
+    int note_num;
+    if ((millis()-rtimer)>125 && strum){
+      if (!b4 && !b5){
+        strcat(notes,"7 ");
+        note_num = 7;
+      } else if (!b1 && !b2){
+        strcat(notes,"6 ");
+        note_num = 6;
+      } else if (!b5){
+        strcat(notes,"5 ");
+        note_num = 5;
+      } else if (!b4){
+        strcat(notes,"4 ");
+        note_num = 4;
+      } else if (!b3){
+        strcat(notes,"3 ");
+        note_num = 3;
+      } else if (!b2){
+        strcat(notes,"2 ");
+        note_num = 2;
+      } else if (!b1){
+        strcat(notes,"1 ");
+        note_num = 1;
+      } else {
+        strcat(notes,"0 ");
+        strum=false;
+        note_num = 0;
+      }
+      rtimer=millis();
+      change_frequency(note_num); //changes the note
+    }
+    if ((millis()-ptimer)>10000){
+      Serial.println("POST");
+      //POST:
+      char body[4000]; //for body;
+      sprintf(body,"instrument=%s&notes=%s",instrument,notes);//generate body, posting to User, 1 step
+      int body_len = strlen(body); //calculate body length (for header reporting)
+      sprintf(request_buffer,"POST http://608dev.net/sandbox/sc/kvfrans/dynamic_musical_interfaces/music_database.py HTTP/1.1\r\n");
+      strcat(request_buffer,"Host: 608dev.net\r\n");
+      strcat(request_buffer,"Content-Type: application/x-www-form-urlencoded\r\n");
+      sprintf(request_buffer+strlen(request_buffer),"Content-Length: %d\r\n", body_len); //append string formatted to end of request buffer
+      strcat(request_buffer,"\r\n"); //new line from header to body
+      strcat(request_buffer,body); //body
+      strcat(request_buffer,"\r\n"); //header
+      Serial.println(request_buffer);
+      unblocked_http_request("608dev.net", request_buffer, response_buffer, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT,true);
+      memset(notes,0,500);
+      ptimer=millis();
+    }
   }
-  if ((millis()-ptimer)>10000){
-    Serial.println("POST");
-    //POST:
-    char body[4000]; //for body;
-    sprintf(body,"instrument=%s&notes=%s",instrument,notes);//generate body, posting to User, 1 step
-    int body_len = strlen(body); //calculate body length (for header reporting)
-    sprintf(request_buffer,"POST http://608dev.net/sandbox/sc/kvfrans/dynamic_musical_interfaces/music_database.py HTTP/1.1\r\n");
-    strcat(request_buffer,"Host: 608dev.net\r\n");
-    strcat(request_buffer,"Content-Type: application/x-www-form-urlencoded\r\n");
-    sprintf(request_buffer+strlen(request_buffer),"Content-Length: %d\r\n", body_len); //append string formatted to end of request buffer
-    strcat(request_buffer,"\r\n"); //new line from header to body
-    strcat(request_buffer,body); //body
-    strcat(request_buffer,"\r\n"); //header
-    Serial.println(request_buffer);
-    unblocked_http_request("608dev.net", request_buffer, response_buffer, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT,true);
-    memset(notes,0,500);
-    ptimer=millis();
-  }
+  ui_updater();
 }
