@@ -9,9 +9,9 @@ def request_handler(request):
     fi.close()
     basehtml = """
         <br>
-        
+
         <audio controls style="width: 1000px;">
-            <source src="data:audio/wav;base64, {}" type="audio/wav">
+            <source src="data:audio/ogg;base64, {}" type="audio/ogg">
         </audio>
     """.format(base64string)
     return basehtml

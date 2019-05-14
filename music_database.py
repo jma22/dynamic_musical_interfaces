@@ -5,6 +5,7 @@ import string
 import scipy.io.wavfile
 import numpy as np
 import math
+import soundfile as sf
 
 
 soundcloud = '__HOME__/dynamic_musical_interfaces/soundcloud.db'  #database
@@ -174,11 +175,14 @@ def request_handler(request):
             c.execute('''DROP TABLE music_table;''')    #delets the music table after the wave file is made. a new one is created each recording
             conn.commit()
             conn.close()
-            
+
 
             alist = makeSong(music_dict, len(music_dict.keys()))
             array = np.array(alist, dtype=np.float32)
-            scipy.io.wavfile.write('__HOME__/dynamic_musical_interfaces/wavs/'+str(time.time())+'.wav', 44100, array)
+            name = '__HOME__/dynamic_musical_interfaces/wavs/'+str(time.time())
+            scipy.io.wavfile.write(name+'.wav', 44100, array)
+            data, samplerate = sf.read(name+'.wav')
+            sf.write(name+'.ogg', data, samplerate)
             return  "Status: Stop"
         conn.close() # close connection to database
 
