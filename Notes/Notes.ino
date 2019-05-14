@@ -29,7 +29,7 @@ const uint8_t PIN_3 = 32; //button 3
 const uint8_t PIN_4 = 33; //button 4
 const uint8_t PIN_5 = 25 ; //button 5
 //Ultrasonic Sensors:
-//echo 
+//echo
 const uint8_t echoPIN = 19;
 //trig
 const uint8_t trigPIN = 5;
@@ -61,6 +61,11 @@ uint32_t posting_timer = 0;
 int freq = 2000;
 int channel = 0;
 int resolution = 8;
+
+//UI vars
+uint8_t ui_state;   //usd to guide the startup ui
+uint8_t button_count;     //determines which instrument to select based on number of button presses
+uint8_t recording_flag;    //tells device when to start recording measurements
 
 
 //Some constants and some resources:
