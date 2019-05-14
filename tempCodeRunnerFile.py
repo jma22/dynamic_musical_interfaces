@@ -1,1 +1,1 @@
-plt.plot(n.real, 'b-', n.imaginary, 'o')
+wavfile.write('./test3.wav', 44100, array)

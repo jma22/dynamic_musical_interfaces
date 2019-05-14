@@ -22,7 +22,7 @@ def request_handler(request):
     for f in onlyfiles:
         i+=1
         basehtml += """
-            <li onclick=changeUrl("/sandbox/sc/kvfrans/dynamic_musical_interfaces/play.py?wav={}")>wav{}.wav</li>
+            <li onclick=changeUrl("/sandbox/sc/kvfrans/dynamic_musical_interfaces/play.py?wav={}")>Track {}</li>
         """.format(f,i)
     basehtml += "</ul><iframe name=\"iFrameName\" id =\"player\"></iframe><script src=\"../dynamic_musical_interfaces/website.js\"></script></body></html>"
     return basehtml

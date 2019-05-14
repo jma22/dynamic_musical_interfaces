@@ -6,77 +6,77 @@
 #include <WiFi.h> //Connect to WiFi NetworkTFT_eSPI tft = TFT_eSPI();  // Invoke library, pins defined in User_Setup.h
 
 
-//not working at the moment, just copy and pasted some stuff in
-
-MPU9255 imu; //imu object called, appropriately, imu
-TFT_eSPI tft = TFT_eSPI();
-
-
-int freq = 2000;
-int channel = 0;
-int resolution = 8;
-const int sammpling_rate = 125;   //125 ms note sampling
-
-const int BUTTON_PIN = 16;  //the bop button
-const int BUTTON_PIN2 = 5;  //used to activate the game
-
-uint32_t sample_timer;    //times the sampling
-
-void  change_frequency(int note)  {
-  switch(note)  {
-    case 0:
-      ledcWriteTone(channel,0);
-      break;
-    case 1:
-      ledcWriteTone(channel,262); //Low c
-      break;
-    case 2:
-      ledcWriteTone(channel,294); //Low d
-      break;
-    case 3:
-      ledcWriteTone(channel,330); //Low d
-      break;
-    case 4:
-      ledcWriteTone(channel,349); //Low d
-      break;
-    case 5:
-      ledcWriteTone(channel,392); //Low d
-      break;
-    case 6:
-      ledcWriteTone(channel,440); //Low d
-      break;
-    case 7:
-      ledcWriteTone(channel,494); //Low d
-      break;
-  }
-}
-
-
-
-void setup() {
-
-  Serial.begin(115200);
-  pinMode(BUTTON_PIN,INPUT_PULLUP);
-  pinMode(BUTTON_PIN2,INPUT_PULLUP);
-  pinMode(27,OUTPUT);
-
-  ledcSetup(channel, freq, resolution);
-  ledcAttachPin(27, channel);
-  ledcWrite(channel,10);
-
-  sample_timer = millis();
-
-}
-
-void loop() {
-  for (int freq = 250; freq < 1000; freq = freq + 1){
-
-       Serial.println(freq);
-
-       ledcWriteTone(channel, freq);
-       delay(100);
-    }
-}
+// //not working at the moment, just copy and pasted some stuff in
+//
+// MPU9255 imu; //imu object called, appropriately, imu
+// TFT_eSPI tft = TFT_eSPI();
+//
+//
+// int freq = 2000;
+// int channel = 0;
+// int resolution = 8;
+// const int sammpling_rate = 125;   //125 ms note sampling
+//
+// const int BUTTON_PIN = 16;  //the bop button
+// const int BUTTON_PIN2 = 5;  //used to activate the game
+//
+// uint32_t sample_timer;    //times the sampling
+// 
+// void  change_frequency(int note)  {
+//   switch(note)  {
+//     case 0:
+//       ledcWriteTone(channel,0);
+//       break;
+//     case 1:
+//       ledcWriteTone(channel,262); //Low c
+//       break;
+//     case 2:
+//       ledcWriteTone(channel,294); //Low d
+//       break;
+//     case 3:
+//       ledcWriteTone(channel,330); //Low d
+//       break;
+//     case 4:
+//       ledcWriteTone(channel,349); //Low d
+//       break;
+//     case 5:
+//       ledcWriteTone(channel,392); //Low d
+//       break;
+//     case 6:
+//       ledcWriteTone(channel,440); //Low d
+//       break;
+//     case 7:
+//       ledcWriteTone(channel,494); //Low d
+//       break;
+//   }
+// }
+//
+//
+//
+// void setup() {
+//
+//   Serial.begin(115200);
+//   pinMode(BUTTON_PIN,INPUT_PULLUP);
+//   pinMode(BUTTON_PIN2,INPUT_PULLUP);
+//   pinMode(27,OUTPUT);
+//
+//   ledcSetup(channel, freq, resolution);
+//   ledcAttachPin(27, channel);
+//   ledcWrite(channel,10);
+//
+//   sample_timer = millis();
+//
+// }
+//
+// void loop() {
+//   for (int freq = 250; freq < 1000; freq = freq + 1){
+//
+//        Serial.println(freq);
+//
+//        ledcWriteTone(channel, freq);
+//        delay(100);
+//     }
+// }
 
 
 
@@ -122,4 +122,5 @@ void loop()
 {
   Serial.print(sensor.readRangeContinuousMillimeters());    ///PRINTS THE mm DISTANCE READINGS FROM THE LASER
   Serial.println();
+
 }
