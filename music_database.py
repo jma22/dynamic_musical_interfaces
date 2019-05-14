@@ -6,6 +6,7 @@ import scipy.io.wavfile
 import numpy as np
 import math
 import soundfile as sf
+import os
 
 
 soundcloud = '__HOME__/dynamic_musical_interfaces/soundcloud.db'  #database
@@ -183,6 +184,10 @@ def request_handler(request):
             scipy.io.wavfile.write(name+'.wav', 44100, array)
             data, samplerate = sf.read(name+'.wav')
             sf.write(name+'.ogg', data, samplerate)
+            os.remove(name+'.wav')
+
+
+
             return  "Status: Stop"
         conn.close() # close connection to database
 
