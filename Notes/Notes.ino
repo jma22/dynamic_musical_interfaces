@@ -23,14 +23,16 @@ char notes[500];
 char instrument[20]="Drums";
 
 //Buttons:
-const uint8_t PIN_1 = 16; //button 1
-const uint8_t PIN_2 = 5; //button 2
-const uint8_t PIN_3 = 19; //button 3
+const uint8_t PIN_1 = 26; //button 1
+const uint8_t PIN_2 = 27; //button 2
+const uint8_t PIN_3 = 32; //button 3
+const uint8_t PIN_4 = 33; //button 4
+const uint8_t PIN_5 = 25 ; //button 5
 //Ultrasonic Sensors:
-//echo
-const uint8_t echoPIN = 26;
+//echo 
+const uint8_t echoPIN = 19;
 //trig
-const uint8_t trigPIN = 27;
+const uint8_t trigPIN = 5;
 
 //
 long duration;
@@ -44,6 +46,8 @@ const uint16_t dtime=10;
 uint8_t b1;
 uint8_t b2;
 uint8_t b3;
+uint8_t b4;
+uint8_t b5;
 
 //Timers for recording and posting
 uint32_t rtimer;
@@ -92,19 +96,19 @@ void  change_frequency(int note)  {
       ledcWriteTone(channel,294); //Low d
       break;
     case 3:
-      ledcWriteTone(channel,330); //Low d
+      ledcWriteTone(channel,330); //Low e
       break;
     case 4:
-      ledcWriteTone(channel,349); //Low d
+      ledcWriteTone(channel,349); //Low f
       break;
     case 5:
-      ledcWriteTone(channel,392); //Low d
+      ledcWriteTone(channel,392); //Low g
       break;
     case 6:
-      ledcWriteTone(channel,440); //Low d
+      ledcWriteTone(channel,440); //Low a
       break;
     case 7:
-      ledcWriteTone(channel,494); //Low d
+      ledcWriteTone(channel,494); //Low b
       break;
   }
 }
@@ -120,11 +124,13 @@ void setup() {
   pinMode(PIN_1,INPUT_PULLUP);
   pinMode(PIN_2,INPUT_PULLUP);
   pinMode(PIN_3,INPUT_PULLUP);
+  pinMode(PIN_4,INPUT_PULLUP);
+  pinMode(PIN_5,INPUT_PULLUP);
   pinMode(trigPIN,OUTPUT);
   pinMode(echoPIN,INPUT);
 
   ledcSetup(channel, freq, resolution);
-  ledcAttachPin(27, channel);   //buzzer needs to be on pin 27
+  ledcAttachPin(14, channel);   //buzzer needs to be on pin
   ledcWrite(channel,10);
 
   WiFi.begin(network,password); //attempt to connect to wifi
@@ -152,9 +158,17 @@ void setup() {
 }
 
 void loop() {
+  Serial.println("Buttons:");
   b1=digitalRead(PIN_1);
+  Serial.println(b1);
   b2=digitalRead(PIN_2);
+  Serial.println(b2);
   b3=digitalRead(PIN_3);
+  Serial.println(b3);
+  b4=digitalRead(PIN_4);
+  Serial.println(b4);
+  b5=digitalRead(PIN_5);
+  Serial.println(b5);
   //Strumming:
   durationtimer=millis();
   digitalWrite(trigPIN,HIGH);
@@ -162,8 +176,8 @@ void loop() {
   digitalWrite(trigPIN,LOW);
   duration=pulseIn(echoPIN,HIGH);
   distance=duration*.034/2;
-  Serial.println("Distance: ");
-  Serial.println(distance);
+  //Serial.println("Distance: ");
+  //Serial.println(distance);
   if (distance>3 && distance<11){
     strum=true;
     strcat(notes,"0 ");
@@ -171,16 +185,16 @@ void loop() {
   //Notes:
   int note_num;
   if ((millis()-rtimer)>125 && strum){
-    if (!b1 && !b2 && !b3){
+    if (!b4 && !b5){
       strcat(notes,"7 ");
       note_num = 7;
-    } else if (!b1 && !b3){
+    } else if (!b1 && !b2){
       strcat(notes,"6 ");
       note_num = 6;
-    } else if (!b2 && !b3){
+    } else if (!b5){
       strcat(notes,"5 ");
       note_num = 5;
-    } else if (!b1 && !b2){
+    } else if (!b4){
       strcat(notes,"4 ");
       note_num = 4;
     } else if (!b3){
