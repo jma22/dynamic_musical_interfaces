@@ -80,7 +80,7 @@ def request_handler(request):
                         if note != '':
                             music_dict[postings[1]].append(int(note))
 
-            ### addds zeros to the lists in the music dictionary for the empty time until the record stop
+            ## addds zeros to the lists in the music dictionary for the empty time until the record stop
             for key in music_dict.keys():
                 time_delta = record_stop - record_start
                 zeros_to_add = time_delta*8 - len(music_dict[key])         #assuming an 8Hz recording rate, so add 8 rests per second
@@ -90,7 +90,7 @@ def request_handler(request):
             c.execute('''DROP TABLE music_table;''')    #delets the music table after the wave file is made. a new one is created each recording
             conn.commit()
             conn.close()
-            return music_dict["guitar"]
+            return music_dict["Drums"]
 
         else:
             conn.close()
