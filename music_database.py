@@ -30,8 +30,7 @@ def addrest(samplingrate,resolution,alist):
     for dot in range(totalstuff):
         alist.append(0)
 
-
-def addnote(samplingrate,freq,resolution,alist,duration):
+def addnote_theremin(samplingrate,freq,resolution,alist,duration):
     """
     input: samplingrate, freqtuple, resolution, alist, duration in sampling rates
     output: adds a note,
@@ -42,6 +41,79 @@ def addnote(samplingrate,freq,resolution,alist,duration):
     period = resolution/freq
     for dot in range(totalstuff*duration):
         alist.append(math.sin(2*3.14/period*dot))
+
+def addnote_oboe(samplingrate,freq,resolution,alist,duration):
+    """
+    input: samplingrate, freqtuple, resolution, alist, duration in sampling rates
+    output: adds a note,
+    """
+    testfft_vals = []
+    noteduration = 1/samplingrate
+    totalstuff = int(noteduration*resolution)*duration
+    freqscale = noteduration*duration
+
+    print(duration)
+    #init fft
+    for i in range(totalstuff):
+        testfft_vals.append(0)
+    #put the goodstuff
+    testfft_vals[int(freq*freqscale)]=totalstuff
+    testfft_vals[int(freq*freqscale)*2]=totalstuff*9/10
+    testfft_vals[int(freq*freqscale)*3]=totalstuff*22/10
+    testfft_vals[int(freq*freqscale)*4]=totalstuff*2/10
+    testfft_vals[int(freq*freqscale)*5]=totalstuff*22/100
+    testfft_vals[int(freq*freqscale)*6]=totalstuff*23/100
+    testifft_vals = ifft(testfft_vals)
+    alist.extend(list(testifft_vals.real[0:totalstuff]))
+
+def addnote_piano(samplingrate,freq,resolution,alist,duration):
+    """
+    input: samplingrate, freqtuple, resolution, alist, duration in sampling rates
+    output: adds a note,
+    """
+    testfft_vals = []
+    noteduration = 1/samplingrate
+    totalstuff = int(noteduration*resolution)*duration
+    freqscale = noteduration*duration
+
+    print(duration)
+    #init fft
+    for i in range(totalstuff):
+        testfft_vals.append(0)
+    #put the goodstuff
+    testfft_vals[int(freq*freqscale)]=totalstuff
+    testfft_vals[int(freq*freqscale)*2]=totalstuff*1/10
+    testfft_vals[int(freq*freqscale)*3]=totalstuff*36/100
+    testfft_vals[int(freq*freqscale)*4]=totalstuff*7/100
+    testfft_vals[int(freq*freqscale)*5]=totalstuff*6/100
+    testfft_vals[int(freq*freqscale)*6]=totalstuff*5/100
+
+    testifft_vals = ifft(testfft_vals)
+    alist.extend(list(testifft_vals.real[0:totalstuff]))
+
+def addnote_violin(samplingrate,freq,resolution,alist,duration):
+    """
+    input: samplingrate, freqtuple, resolution, alist, duration in sampling rates
+    output: adds a note,
+    """
+    testfft_vals = []
+    noteduration = 1/samplingrate
+    totalstuff = int(noteduration*resolution)*duration
+    freqscale = noteduration*duration
+
+    print(duration)
+    #init fft
+    for i in range(totalstuff):
+        testfft_vals.append(0)
+    #put the goodstuff
+    testfft_vals[int(freq*freqscale)]=totalstuff
+    testfft_vals[int(freq*freqscale)*2]=totalstuff/4
+    testfft_vals[int(freq*freqscale)*3]=totalstuff/8
+    testfft_vals[int(freq*freqscale)*4]=totalstuff*3/16
+    testfft_vals[int(freq*freqscale)*5]=totalstuff/2
+
+    testifft_vals = ifft(testfft_vals)
+    alist.extend(list(testifft_vals.real[0:totalstuff]))
 
 def makeSong(songDict,channelnum):
     noteDict = {0:0,1:261,2:294,3:330,4:349,5:392,6:440,7:494,8:523}
@@ -62,7 +134,14 @@ def makeSong(songDict,channelnum):
                 if lastnote == currentnote:
                     counter+=1
                 else:
-                    addnote(samplingrate,lastnote,resolution,musicdict[j],counter)
+                    if j == "piano":
+                        addnote_piano(samplingrate,lastnote,resolution,musicdict[j],counter)
+                    if j == "theremin":
+                        addnote_theremin(samplingrate,lastnote,resolution,musicdict[j],counter)
+                    if j == "violin":
+                        addnote_violin(samplingrate,lastnote,resolution,musicdict[j],counter)
+                    if j == "oboe":
+                        addnote_oboe(samplingrate,lastnote,resolution,musicdict[j],counter)
                     counter = 1
             else:
                 addrest(samplingrate,resolution,musicdict[j])
@@ -71,7 +150,14 @@ def makeSong(songDict,channelnum):
         currentnote = noteDict[templist[-1]]
         lastnote = noteDict[templist[-2]]
         if currentnote!=0:
-            addnote(samplingrate,currentnote,resolution,musicdict[j],counter)
+            if j == "piano":
+                addnote_piano(samplingrate,lastnote,resolution,musicdict[j],counter)
+            if j == "theremin":
+                addnote_theremin(samplingrate,lastnote,resolution,musicdict[j],counter)
+            if j == "violin":
+                addnote_violin(samplingrate,lastnote,resolution,musicdict[j],counter)
+            if j == "oboe":
+                addnote_oboe(samplingrate,lastnote,resolution,musicdict[j],counter)
         else:
             addrest(samplingrate,resolution,musicdict[j])
     #sum songs

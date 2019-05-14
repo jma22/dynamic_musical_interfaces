@@ -154,8 +154,6 @@ def addnote_oboe(samplingrate,freq,resolution,alist,duration):
     for i in range(totalstuff):
         testfft_vals.append(0)
     #put the goodstuff
-    print(totalstuff)
-    print(int(freq*freqscale))
     testfft_vals[int(freq*freqscale)]=totalstuff
     testfft_vals[int(freq*freqscale)*2]=totalstuff*9/10
     testfft_vals[int(freq*freqscale)*3]=totalstuff*22/10
@@ -164,7 +162,7 @@ def addnote_oboe(samplingrate,freq,resolution,alist,duration):
     testfft_vals[int(freq*freqscale)*6]=totalstuff*23/100
     testifft_vals = ifft(testfft_vals)
     alist.extend(list(testifft_vals.real[0:totalstuff]))
-    
+
 # n = 1000
 
 # T = 100
@@ -182,7 +180,7 @@ def addnote_oboe(samplingrate,freq,resolution,alist,duration):
 
 # mask = freqs > 0
 
-# fft_vals = fft(y) 
+# fft_vals = fft(y)
 
 # ifft_vals = ifft(fft_vals)
 
