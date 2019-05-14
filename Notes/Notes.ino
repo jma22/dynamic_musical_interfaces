@@ -25,14 +25,14 @@ char instrument[20]="Drums";
 //Buttons:
 const uint8_t PIN_1 = 26; //button 1
 const uint8_t PIN_2 = 27; //button 2
-const uint8_t PIN_3 = 32; //button 3
-const uint8_t PIN_4 = 33; //button 4
+const uint8_t PIN_3 = 14; //button 3
+const uint8_t PIN_4 = 13; //button 4
 const uint8_t PIN_5 = 25 ; //button 5
 //Ultrasonic Sensors:
 //echo 
 const uint8_t echoPIN = 19;
 //trig
-const uint8_t trigPIN = 5;
+const uint8_t trigPIN = 21;
 
 //
 long duration;
@@ -130,7 +130,7 @@ void setup() {
   pinMode(echoPIN,INPUT);
 
   ledcSetup(channel, freq, resolution);
-  ledcAttachPin(14, channel);   //buzzer needs to be on pin
+  ledcAttachPin(16, channel);   //buzzer needs to be on pin
   ledcWrite(channel,10);
 
   WiFi.begin(network,password); //attempt to connect to wifi
@@ -212,6 +212,7 @@ void loop() {
       note_num = 0;
     }
     rtimer=millis();
+    
     change_frequency(note_num); //changes the note
   }
   if ((millis()-ptimer)>10000){
