@@ -67,7 +67,7 @@ def makeSong(songDict,channelnum):
                 if lastnote == currentnote:
                     counter+=1
                 else:
-                    addnote(samplingrate,lastnote,resolution,musicdict[j],counter)
+                    addnote_oboe(samplingrate,lastnote,resolution,musicdict[j],counter)
                     counter = 1
             else:
                 addrest(samplingrate,resolution,musicdict[j])
@@ -76,7 +76,7 @@ def makeSong(songDict,channelnum):
         currentnote = noteDict[templist[-1]]
         lastnote = noteDict[templist[-2]]
         if currentnote!=0:
-            addnote(samplingrate,currentnote,resolution,musicdict[j],counter)
+            addnote_oboe(samplingrate,currentnote,resolution,musicdict[j],counter)
         else:
             addrest(samplingrate,resolution,musicdict[j])
     #sum songs
@@ -139,6 +139,32 @@ testnote = []
 addnote(8,440,44100,testnote,8)
 testlen = np.linspace(0,1,len(testnote))
 
+def addnote_oboe(samplingrate,freq,resolution,alist,duration):
+    """
+    input: samplingrate, freqtuple, resolution, alist, duration in sampling rates
+    output: adds a note,
+    """
+    testfft_vals = []
+    noteduration = 1/samplingrate
+    totalstuff = int(noteduration*resolution)*duration
+    freqscale = noteduration*duration
+
+    print(duration)
+    #init fft
+    for i in range(totalstuff):
+        testfft_vals.append(0)
+    #put the goodstuff
+    print(totalstuff)
+    print(int(freq*freqscale))
+    testfft_vals[int(freq*freqscale)]=totalstuff
+    testfft_vals[int(freq*freqscale)*2]=totalstuff*9/10
+    testfft_vals[int(freq*freqscale)*3]=totalstuff*22/10
+    testfft_vals[int(freq*freqscale)*4]=totalstuff*2/10
+    testfft_vals[int(freq*freqscale)*5]=totalstuff*22/100
+    testfft_vals[int(freq*freqscale)*6]=totalstuff*23/100
+    testifft_vals = ifft(testfft_vals)
+    alist.extend(list(testifft_vals.real[0:totalstuff]))
+    
 # n = 1000
 
 # T = 100
@@ -156,7 +182,7 @@ testlen = np.linspace(0,1,len(testnote))
 
 # mask = freqs > 0
 
-# fft_vals = fft(y)
+# fft_vals = fft(y) 
 
 # ifft_vals = ifft(fft_vals)
 
@@ -165,21 +191,21 @@ testlen = np.linspace(0,1,len(testnote))
 # fft_theo = 2*np.abs(fft_vals/n)
 
 
-testnotefreqs = fftfreq(len(testnote))
-mask = testnotefreqs > 0
-testnotefftvals = fft(testnote)
-testnotefft_theo = 2*np.abs(testnotefftvals/len(testnote))
-testfft_vals = []
-testnoteifftvals = ifft(testnotefftvals)
-for i in range(44100):
-    testfft_vals.append(0)
+# testnotefreqs = fftfreq(len(testnote))
+# mask = testnotefreqs > 0
+# testnotefftvals = fft(testnote)
+# testnotefft_theo = 2*np.abs(testnotefftvals/len(testnote))
+# testfft_vals = []
+# # testnoteifftvals = ifft(testnotefftvals)
+# for i in range(88200):
+#     testfft_vals.append(0)
 
-# #violin
-# testfft_vals[440]=44100
-# testfft_vals[440*2]=44100/4
-# testfft_vals[440*3]=44100/8
-# testfft_vals[440*4]=44100*3/16
-# testfft_vals[440*5]=44100/2
+# # #violin
+# testfft_vals[880]=44100
+# testfft_vals[880*2]=44100/4
+# testfft_vals[880*3]=44100/8
+# testfft_vals[880*4]=44100*3/16
+# testfft_vals[880*5]=44100/2
 # testfft_vals[440*6]=44100/4
 # testfft_vals[440*7]=44100*11/16
 # testfft_vals[440*8]=44100/2
@@ -199,28 +225,26 @@ for i in range(44100):
 # testfft_vals[440*5-1]=44100*4/100/4
 
 # #oboe
-testfft_vals[220]=44100
-testfft_vals[220*2]=44100*9/10
-testfft_vals[220*3]=44100*22/10
-testfft_vals[220*4]=44100*2/10
-testfft_vals[220*5]=44100*22/100
-testfft_vals[220*6]=44100*23/100
-# testfft_vals[440*7]=44100*60/100
-# testfft_vals[440*8]=44100*30/100
-# testfft_vals[440*9]=44100*23/100
+# testfft_vals[220]=44100
+# testfft_vals[220*2]=44100*9/10
+# testfft_vals[220*3]=44100*22/10
+# testfft_vals[220*4]=44100*2/10
+# testfft_vals[220*5]=44100*22/100
+# testfft_vals[220*6]=44100*23/100
 
-testifft_vals = ifft(testfft_vals)
-lasti=0
-j = 0
-positivevals = testnotefft_theo[mask]
-for i in positivevals:
-    if lasti < i:
-        print(i)
-        print(j)
-    lasti = i
-    j+=1
 
-print(len(testnoteifftvals))
+# testifft_vals = ifft(testfft_vals)
+# lasti=0
+# j = 0
+# positivevals = testnotefft_theo[mask]
+# for i in positivevals:
+#     if lasti < i:
+#         print(i)
+#         print(j)
+#     lasti = i
+#     j+=1
+
+# print(len(testnoteifftvals))
 
 # plt.figure(1)
 # plt.title('original signal')
@@ -236,18 +260,16 @@ print(len(testnoteifftvals))
 
 
 
-c = makeSong({'lmao':[1,1,0,0,1,1,0,0]},1)
-array = testifft_vals.real[0:11025]
-# array = np.array(c, dtype=np.float32)
+c = makeSong({'lmao':[2,2,0,0,2,2,0,0]},1)
+array = np.array(c, dtype=np.float32)
+# print(c)
 
 # data, fs = sf.read(array)
 # print(np.mean(array))
 # print(array.dtype)
-scipy.io.wavfile.write('./test3.wav', 44100, array)
+# scipy.io.wavfile.write('./test3.wav', 44100, array)
 
 sd.play(array, 44100,blocking =True)
-sd.play(array, 44100,blocking =True)
-sd.play(array, 44100,blocking =True)
-sd.play(array, 44100,blocking =True)
-plt.plot(array)
+
+plt.plot(c)
 plt.show()
