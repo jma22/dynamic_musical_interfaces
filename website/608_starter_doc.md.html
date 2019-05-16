@@ -9,7 +9,10 @@ Dynamic Musical Interfaces
 In this project we are building a music studio using ESPs as various intruments and a central server to record the notes and create sound files. A typical user will be able to pick up an ESP equipped with sensors such as a distance reader and multiple buttons, and begin playing notes. The sounds will play in real time from the ESP as the user plays. At the same time, the ESP will be continuously sending this music data to a centralized server, along with an instrument id (guitar, theremin, etc). The central server will record this data on a database along with the timestamp. When a user opens the website, they will have an option to start and stop the recording. If the user starts, the server memorize the timestamp. When the user clicks "stop", the server will compile all the music notes that have been sent within that timeframe into a sound file, compress it, and server it to the website.
 
 
-[blockdiagram of system]
+System:
+<img src="./images/product_diagram.jpg" alt="block diagram of product">
+Server:
+<img src="./images/server_diagram.jpg" alt="server diagram">
 
 The ESP
 ===============================================================================
@@ -98,7 +101,7 @@ Next, the  change_frequency() function acts as a dictionary of kinds to alter th
 The third helper function is ui_updater(). This function is called at the end of each loop and servers as a state machine to update the UI of the screen. It contains several modes, the first few of which are dedicated to instrument type selection, which is controlled exclusively by the buttons. Once it moves beyond these states, the theremin is permanently in a state of data recording and posting depending on the amount of time that has gone by.
 
 
-notes.ino
+Guitar.ino
 -------------------------------------------------------------------------------
 @cassidy
 
@@ -119,6 +122,12 @@ Another challenge we faced was the size of the music files. Uncompressed, these 
 
 Partslist
 ===============================================================================
+<ul>
+  <li>VL6180X Time of Flight Distance Sensor</li>
+  <li>2x 2W 8 Ohm Audio Speaker</li>
+  <li>UltraSonic Distance Senso- HC-SR04r</li>
+  <li>6x Buttons</li>
+</ul>
 
 Pictures
 ===============================================================================

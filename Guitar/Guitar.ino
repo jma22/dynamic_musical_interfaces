@@ -31,7 +31,7 @@ const uint8_t PIN_3 = 14; //button 3
 const uint8_t PIN_4 = 13; //button 4
 const uint8_t PIN_5 = 25; //button 5
 //Ultrasonic Sensor:
-//echo
+//echo 
 const uint8_t echoPIN = 19;
 //trig
 const uint8_t trigPIN = 21;
