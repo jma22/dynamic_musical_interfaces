@@ -7,7 +7,7 @@ import numpy as np
 import math
 import soundfile as sf
 import os
-
+from numpy.fft import fft, fftfreq, ifft
 
 soundcloud = '__HOME__/dynamic_musical_interfaces/soundcloud.db'  #database
 
@@ -64,6 +64,15 @@ def addnote_oboe(samplingrate,freq,resolution,alist,duration):
     testfft_vals[int(freq*freqscale)*5]=totalstuff*22/100
     testfft_vals[int(freq*freqscale)*6]=totalstuff*23/100
     testifft_vals = ifft(testfft_vals)
+
+    x = 500.0
+    for i in range(len(testifft_vals)-500,len(testifft_vals)):
+        testifft_vals[i] *= x/500.0
+        x -= 1.0
+
+    for i in range(0,500):
+        testifft_vals[i] *= i/500
+        #lessens the attack of the oboe
     alist.extend(list(testifft_vals.real[0:totalstuff]))
 
 def addnote_piano(samplingrate,freq,resolution,alist,duration):
@@ -89,6 +98,10 @@ def addnote_piano(samplingrate,freq,resolution,alist,duration):
     testfft_vals[int(freq*freqscale)*6]=totalstuff*5/100
 
     testifft_vals = ifft(testfft_vals)
+    x = 500.0
+    for i in range(len(testifft_vals)-500,len(testifft_vals)):
+        testifft_vals[i] *= x/500.0
+        x -= 1.0
     alist.extend(list(testifft_vals.real[0:totalstuff]))
 
 def addnote_violin(samplingrate,freq,resolution,alist,duration):
@@ -113,6 +126,40 @@ def addnote_violin(samplingrate,freq,resolution,alist,duration):
     testfft_vals[int(freq*freqscale)*5]=totalstuff/2
 
     testifft_vals = ifft(testfft_vals)
+    x = 500.0
+    for i in range(len(testifft_vals)-500,len(testifft_vals)):
+        testifft_vals[i] *= x/500.0
+        x -= 1.0
+    alist.extend(list(testifft_vals.real[0:totalstuff]))
+
+def addnote_guitar(samplingrate,freq,resolution,alist,duration):
+    """
+    input: samplingrate, freqtuple, resolution, alist, duration in sampling rates
+    output: adds a note,
+    """
+    testfft_vals = []
+    noteduration = 1/samplingrate
+    totalstuff = int(noteduration*resolution)*duration
+    freqscale = noteduration*duration
+
+    print(duration)
+    #init fft
+    for i in range(totalstuff):
+        testfft_vals.append(0)
+    #put the goodstuff
+    testfft_vals[int(freq*freqscale)]=totalstuff
+    testfft_vals[int(freq*freqscale)*2]=totalstuff*65/100
+    testfft_vals[int(freq*freqscale)*3]=totalstuff*125/100
+    testfft_vals[int(freq*freqscale)*4]=totalstuff*14/100
+    testfft_vals[int(freq*freqscale)*5]=totalstuff*14/100
+    testfft_vals[int(freq*freqscale)*6]=totalstuff*13/100
+    testfft_vals[int(freq*freqscale)*9]=totalstuff*20/100
+
+    testifft_vals = ifft(testfft_vals)
+    x = 500.0
+    for i in range(len(testifft_vals)-500,len(testifft_vals)):
+        testifft_vals[i] *= x/500.0
+        x -= 1.0
     alist.extend(list(testifft_vals.real[0:totalstuff]))
 
 def makeSong(songDict,channelnum):
@@ -142,6 +189,8 @@ def makeSong(songDict,channelnum):
                         addnote_violin(samplingrate,lastnote,resolution,musicdict[j],counter)
                     if j == "oboe":
                         addnote_oboe(samplingrate,lastnote,resolution,musicdict[j],counter)
+                    if j == "guitar":
+                        addnote_guitar(samplingrate,lastnote,resolution,musicdict[j],counter)
                     counter = 1
             else:
                 addrest(samplingrate,resolution,musicdict[j])
@@ -158,6 +207,8 @@ def makeSong(songDict,channelnum):
                 addnote_violin(samplingrate,lastnote,resolution,musicdict[j],counter)
             if j == "oboe":
                 addnote_oboe(samplingrate,lastnote,resolution,musicdict[j],counter)
+            if j == "guitar":
+                addnote_guitar(samplingrate,lastnote,resolution,musicdict[j],counter)
         else:
             addrest(samplingrate,resolution,musicdict[j])
     #sum songs
