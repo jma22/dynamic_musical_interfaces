@@ -2,19 +2,120 @@
                             **6.08 Report Starter Document**
 
 
+
 Dynamic Musical Interfaces
 ===============================================================================
 
 In this project we are building a music studio using ESPs as various intruments and a central server to record the notes and create sound files. A typical user will be able to pick up an ESP equipped with sensors such as a distance reader and multiple buttons, and begin playing notes. The sounds will play in real time from the ESP as the user plays. At the same time, the ESP will be continuously sending this music data to a centralized server, along with an instrument id (guitar, theremin, etc). The central server will record this data on a database along with the timestamp. When a user opens the website, they will have an option to start and stop the recording. If the user starts, the server memorize the timestamp. When the user clicks "stop", the server will compile all the music notes that have been sent within that timeframe into a sound file, compress it, and server it to the website.
 
 
+[blockdiagram of system]
+
 The ESP
 ===============================================================================
-[@alex @cassidy We need state machine diagrams and a diagram of what is wired to what]
+Guitar
+-------------------------------------------------------------------------------
 
+Theremin
+-------------------------------------------------------------------------------
+[@alex @cassidy We need state machine diagrams and a diagram of what is wired to what and power analysis]
 
 The Server
 ===============================================================================
+Database and Website
+-------------------------------------------------------------------------------
+
+In a typical user flow, the user will first navigate to http://608dev.net/sandbox/sc/kvfrans/dynamic_musical_interfaces/handle.py. This will serve the static page at website.html. In addition, any songs that are currently located in the “wavs/” folder will create a button on the website to load the song. Note, it is important that we do not load the song itself! The songs are quite large and if there are many songs present then the page will take a long time to load. Instead, the server dynamically creates buttons for each song that will call “play.py”.
+
+If the user clicks on a song, they will load the page “play.py?song=songname” in an iframe inside the main webpage. When this script is called on the server, the server will look for a file with name “songname.ogg” in the wavs folder, encode it as a base64 file, then server it to the user. This will appear to the user as an html <audio> tag that can be played, paused, or manipulated at will.
+
+The two buttons on the top of the webpage will start and stop the recording process respectively. Both of these buttons make a GET request to “music_database.py?recording=BOOL”, where BOOL is either true or false. If the server receives a value of true, it will begin the recording process by setting the value in SQL database. If the server receives a value of false, it will stop the recording process and create a music file. We will go over these two processes below.
+
+The ‘music_database.py’ file holds the main chunk of our server code. There are two SQL databases handled in this file, both stored under ‘soundcloud.db’. The first, ‘recording_table’, contains a boolean and a timestamp. This database is used as a simple persistent variable, to know if the server should be recording a song or not. When a GET request is sent to ‘music_database.py’, a (timing real, recording integer) tuple is appended to the end of the database. We check if the server is recording by taking the latest tuple from the database when ordered by time, and checking if recording is equal to 0 or 1.
+
+The second database, ‘music_table’, holds the notes for the current song as a (timing real, instrument text, note text) tuple. Each of these tuples represents a sequence of notes that have been passed to the server through the ESP as a POST request. “Timing” is the timestamp at which the server receives these notes. “Instrument” is a string that details what instrument has played these notes, such as “theremin” or “guitar”. “Note” is a string that represents a sequence of notes represented as integers delimited by spaces. For example, “0 1 3 3 2 0 0 0” would indicate a rest followed by an A, a C, a C, a  B, and three rests. 
+
+Once a user has clicked the START button on the webpage, the server will begin logging any incoming POST requests into the ‘music_table’ database. If the user clicks STOP, the server will then build a sound file from this database, then empty it and wait until START is clicked again. The method for making these sound files is detailed below.
+
+
+Music
+-------------------------------------------------------------------------------
+Most of the music-producing code is embedded in music_database.py, but the majority of the testing was done in music.py. The music production process starts when the user hits the stop button, this would return a dictionary created by the database that encodes the music, the dictionary is in the format of {‘instrument’ : “notes”}, with notes being numbers from 0 to 7, each corresponding to an actual note(C-B) and a rest that are space separated, each number corresponds to an eighth of a second, since the sampling rate is 8Hz. 
+
+In order to create a wav file of actual music, each note has to create a corresponding wave with the correct frequency and instrument wave pattern. A typical wav file has a resolution of 44100Hz, so each ‘note’ would correspond to around 5512 discrete points on the sound wave. Firstly, a list is initialized and subsequent functions are called to mutate it. The most basic function would be ‘addrest’, which would add ‘0’s to the list, this would create a period of silence in the music. Each instrument then has a specific ‘addnote’ function. The most basic of which would be ‘addnote_theremin’, which takes in a frequency and duration of the note and appends discrete numbers of a sine wave (amplitude :1) with the correct frequency by iterating through a number of discrete time points depending on it’s length. 
+
+We also have other instruments such as the violin, piano, guitar and oboe. For these, we looked up some existing data on the internet regarding the fourier transformation of sound waves produced by these instruments, and by recreating these FT results, we could run and inverse fourier transformation to recreate sound waves corresponding to these instruments. The frequency, amplitude and length of the note is incorporated by scaling the artificial FT results appropriately. These functions also have an appropriate tapering for instruments to make it as realistic as possible (a piano would have a sharp ‘attack’ but tapers off by the end of the note). This function then appends the corresponding discrete magnitudes into the list. 
+
+The final function would be makesong(), which takes in the dictionary (‘instrument’:’notes’) and creates a list that incorporates the whole song. It first creates a ‘discrete sound wave list’ for each instrument, calling each addnote function appropriately. One special part of this is that the function keeps track of chains of the same note and adds a sound wave with the corresponding duration, so that it doesn’t add discrete notes repeatedly. (This also limits the ‘time between note’ to one eighth of a second, which is insignificant to our hearing). After creating musclists for each existing instrument, the function then sums all these waves and scales it back to an amplitude of 1 to create a final ‘music list’ that has all the instruments playing.
+
+Finally, this list is then converted to an numpy array of float32, then using a function from scipy, we can create a wav file of resolution 44100Hz. Then using soundfile, we can take the data of this wav file and create an ogg file, which compresses the files from a megabyte scale to a kilobyte scale. (wav file deleted later) The song is then saved on the server.
+
+Code
+===============================================================================
+[(what does each function or class do, what is the high-level role of each piece of the code?)]
+
+Music_database.py 
+-------------------------------------------------------------------------------
+This is the main chunk of server side logic, handling the database and creating the music files.
+**request_handler(request)**: This is a request handler that deals with incoming GET and POST requests. If a POST request is received and the server is currently recording, it will save it in the database. If the recording is stopped, this function will handle the music generation by calling various helper functions.
+
+**makeSong(songDict, channelNum)**: This is the function that constructs a music file from a given dictionary of {instrument: notes}. ‘channelNum’ is simply the number of instruments. This function works by looping through every note, then adding the frequencies for each note based on what instrument it is listed under. (See music section above)
+
+**addnote_{instrument}(samplingrate,freq,resolution,alist,duration)**: Each of these functions adds the frequencies for a specific note. ‘Alist’ is the object that contains all the frequency data for the sound file. ‘Freq’ is the associated frequency for a specific note. ‘Samplingrate’, ‘resolution’, and ‘duration’ are all constants.
+ 
+Music.py
+-------------------------------------------------------------------------------
+This is mainly a testbed file for messing around with sound generation. It is not used anywhere in the final pipeline but it works to generate arbitrary sound files.
+
+Website.html, website.js,  website.css
+-------------------------------------------------------------------------------
+These are the static files used to represent the main webpage. Website.html has two buttons and a title page, along with an iframe that holds the current playing song. Website.js has the logic for the START and STOP buttons to send a GET request to ‘music_database.py’.  Website.css simply has some stylesheets to add colors and margins.
+
+Play.py
+-------------------------------------------------------------------------------
+This is a server file that serves a music file as a base64 encoded data object. It is loaded into the iframe in the main website. When called, this function will encode a base64 representation of a music file from the ‘wavs/’ folder, then create an html audio object containing this data.
+
+Handle.py
+-------------------------------------------------------------------------------
+This is the server file that actually serves our main webpage. It firsts loads the website.html content into a python string. It then dynamically adds buttons for the various songs in ‘wavs/’, appending them to the end of the html document. This behavior lets the website change automatically when new songs are created.
+
+Theremin.ino
+-------------------------------------------------------------------------------
+@alex
+
+notes.ino 
+-------------------------------------------------------------------------------
+@cassidy
+
+How to Setup
+===============================================================================
+To setup our repo on an arbitrary server, first download and clone the github repository. In the main folder, create an empty folder called ‘wavs/’ that will contain the created songs. In addition, make sure that the various folder references in the code line up with the location on the server. In our case, our main folder was located at ‘HOME/dynamic_musical_interfaces/’. Of course this will need the base 6.08 python server code to actually run.
+
+
+Challenges
+===============================================================================
+A challenge we had in creating the ESP to server connection was the problem of how to sync up instruments. Since the ESP receives no information from the server, we had to way to sync up the hardware devices. Instead, we decided to treat the ESPs as constant streams of information since we used a non-blocking post request. The server would record the timestep when note data was received and automatically sync them up when creating the music file. [@alex]. After some experimentation with different time intervals, we finally settled on a one-second interval for recording and sending notes, where the ESPs would send a POST request every second detailing the 8 notes that were played during that time.
+
+Another challenge we faced was the size of the music files. Uncompressed, these music files were becoming really big and it was taking a very long time to load the main webpage when we were naively loading all songs. We eventually found two key optimizations to make this experience smoother. The first was to compress the wavs created on the server into ogg files with the  ‘soundfile’ library. This reduced the filesize of the music files significantly. The second optimization was to only load songs when they were ready to be played, instead of pre-loading every song on page load. We accomplished this by using the iframe system and offloading the base64 processing to ‘play.py’ which is only called when the user selects a song.
+
+[@jma @alex @cassidy anything else????]
+
+Partslist
+===============================================================================
+
+Pictures
+===============================================================================
+
+
+
+
+
+
+You will also need to upload your code (.ino, .py, everything)
+
+
+
+                            
 
 
 
