@@ -20,7 +20,7 @@ int clientstate=0;
 
 //Variables for holding notes:
 char notes[500];
-char instrument[20]="Drums";
+char instrument[20];
 
 //Buttons:
 const uint8_t PIN_1 = 26; //button 1
@@ -128,6 +128,7 @@ void ui_updater() {
       tft.drawString("piano",0,20,1);
       tft.drawString("oboe",0,30,1);
       tft.drawString("guitar",0,40,1);
+      tft.drawString("violin",0,50,1);
       ui_state = 1;
       break;
     case 1:
@@ -148,7 +149,7 @@ void ui_updater() {
       ui_state = 3;
       break;
     case 3:
-      switch(button_count%4)  {
+      switch(button_count%5)  {
         case 0:
           tft.setTextColor(TFT_GREEN, TFT_BLUE);
           tft.drawString("Theremin",0,10,1);
@@ -157,6 +158,7 @@ void ui_updater() {
           tft.drawString("piano",0,20,1);
           tft.drawString("oboe",0,30,1);
           tft.drawString("guitar",0,40,1);
+          tft.drawString("violin",0,50,1);
           break;
         case 1:
           tft.setTextColor(TFT_GREEN, TFT_BLUE);
@@ -166,6 +168,7 @@ void ui_updater() {
           tft.drawString("Theremin",0,10,1);
           tft.drawString("oboe",0,30,1);
           tft.drawString("guitar",0,40,1);
+          tft.drawString("violin",0,50,1);
           break;
         case 2:
           tft.setTextColor(TFT_GREEN, TFT_BLUE);
@@ -175,6 +178,7 @@ void ui_updater() {
           tft.drawString("Theremin",0,10,1);
           tft.drawString("piano",0,20,1);
           tft.drawString("guitar",0,40,1);
+          tft.drawString("violin",0,50,1);
           break;
         case 3:
           tft.setTextColor(TFT_GREEN, TFT_BLUE);
@@ -184,13 +188,24 @@ void ui_updater() {
           tft.drawString("Theremin",0,10,1);
           tft.drawString("piano",0,20,1);
           tft.drawString("oboe",0,30,1);
+          tft.drawString("violin",0,50,1);
           break;
+          case 4:
+            tft.setTextColor(TFT_GREEN, TFT_BLUE);
+            tft.drawString("violin",0,50,1);
+
+            tft.setTextColor(TFT_GREEN, TFT_BLACK);
+            tft.drawString("guitar",0,40,1);
+            tft.drawString("Theremin",0,10,1);
+            tft.drawString("piano",0,20,1);
+            tft.drawString("oboe",0,30,1);
+            break;
       }
       ui_state = 1;
       break;
     case 4:
       Serial.println(button_count);
-      switch(button_count%4)  {
+      switch(button_count%5)  {
         case 0:
           sprintf(instrument,"theremin");
           break;
@@ -202,6 +217,9 @@ void ui_updater() {
           break;
         case 3:
           sprintf(instrument, "guitar");
+          break;
+        case 4:
+          sprintf(instrument, "violin");
           break;
       }
       Serial.println(instrument);

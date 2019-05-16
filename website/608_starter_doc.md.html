@@ -18,7 +18,19 @@ Guitar
 
 Theremin
 -------------------------------------------------------------------------------
-[@alex @cassidy We need state machine diagrams and a diagram of what is wired to what and power analysis]
+Theremin:
+<img src="./images/theremin_state_machine-cropped.jpg" alt="state machine">
+Wiring
+<img src="./images/wiring diagram-cropped.jpg" alt="Wiring Diagram">
+Power Analysis of Theremin ESP module:
+The theremin has three main power drawing components; TFT display screen, speaker, and IR time of flight distance sensor. The software operating the theremin requires that both a sensor reading from the time of flight IR is taken every 125 ms (8Hz) and a string of recorded notes is posted to the central website every second. The screen is used for a GUI display to allow the user to first select the instrument type to be sent up to the central server as well as show which note is currently played on the speaker to give the user visual feedback.
+
+The TFT screen is required to be continuously activated, so it draws on average 90 mA of current. Next, the 8 ohm speaker is connected to a 3.3V supply through the GPIO 26 pin, but it limited to a 12 mA current intake from ESP32 device specific controls on GPIO pins.
+The lidar sensor works on a periodic cycle of 125 ms lengths, where a certain amount of time is spent in “standby mode” and the rest is in distance measurement mode. The time required to obtain a distance measurement for the IR sensor depends on both distance of the object reflecting the light as well as the reflective properties of the object. In the case of the theremin, our calculations assume a hand will be used, and thus we took into account the reflective properties of skin. This led to the assumption that the average convergence time for the IR light sensor would be 0.28ms (17% reflection from skin, mean distance of 20mm, 850nm wavelength of light). Taking into account time additions from instrument pre-calibration, readout time, and ranging, we estimate the IR sensor to typically draw 5.748 mA on average (I = sampling rate * (pre-calibration time + (ranging time * convergence time) + readout average time * (1.3 + (readout sampling period * 0.0645ms))).
+
+With a 1500mAH capacity battery and an average of 107.748 mA peripheral current usage along with 190mA average ESP usage (based on the post request timing), our Theremin device is expected to last around 5.1 hours on battery power.
+
+@cassidy
 
 The Server
 ===============================================================================
@@ -33,18 +45,18 @@ The two buttons on the top of the webpage will start and stop the recording proc
 
 The ‘music_database.py’ file holds the main chunk of our server code. There are two SQL databases handled in this file, both stored under ‘soundcloud.db’. The first, ‘recording_table’, contains a boolean and a timestamp. This database is used as a simple persistent variable, to know if the server should be recording a song or not. When a GET request is sent to ‘music_database.py’, a (timing real, recording integer) tuple is appended to the end of the database. We check if the server is recording by taking the latest tuple from the database when ordered by time, and checking if recording is equal to 0 or 1.
 
-The second database, ‘music_table’, holds the notes for the current song as a (timing real, instrument text, note text) tuple. Each of these tuples represents a sequence of notes that have been passed to the server through the ESP as a POST request. “Timing” is the timestamp at which the server receives these notes. “Instrument” is a string that details what instrument has played these notes, such as “theremin” or “guitar”. “Note” is a string that represents a sequence of notes represented as integers delimited by spaces. For example, “0 1 3 3 2 0 0 0” would indicate a rest followed by an A, a C, a C, a  B, and three rests. 
+The second database, ‘music_table’, holds the notes for the current song as a (timing real, instrument text, note text) tuple. Each of these tuples represents a sequence of notes that have been passed to the server through the ESP as a POST request. “Timing” is the timestamp at which the server receives these notes. “Instrument” is a string that details what instrument has played these notes, such as “theremin” or “guitar”. “Note” is a string that represents a sequence of notes represented as integers delimited by spaces. For example, “0 1 3 3 2 0 0 0” would indicate a rest followed by an A, a C, a C, a  B, and three rests.
 
 Once a user has clicked the START button on the webpage, the server will begin logging any incoming POST requests into the ‘music_table’ database. If the user clicks STOP, the server will then build a sound file from this database, then empty it and wait until START is clicked again. The method for making these sound files is detailed below.
 
 
 Music
 -------------------------------------------------------------------------------
-Most of the music-producing code is embedded in music_database.py, but the majority of the testing was done in music.py. The music production process starts when the user hits the stop button, this would return a dictionary created by the database that encodes the music, the dictionary is in the format of {‘instrument’ : “notes”}, with notes being numbers from 0 to 7, each corresponding to an actual note(C-B) and a rest that are space separated, each number corresponds to an eighth of a second, since the sampling rate is 8Hz. 
+Most of the music-producing code is embedded in music_database.py, but the majority of the testing was done in music.py. The music production process starts when the user hits the stop button, this would return a dictionary created by the database that encodes the music, the dictionary is in the format of {‘instrument’ : “notes”}, with notes being numbers from 0 to 7, each corresponding to an actual note(C-B) and a rest that are space separated, each number corresponds to an eighth of a second, since the sampling rate is 8Hz.
 
-In order to create a wav file of actual music, each note has to create a corresponding wave with the correct frequency and instrument wave pattern. A typical wav file has a resolution of 44100Hz, so each ‘note’ would correspond to around 5512 discrete points on the sound wave. Firstly, a list is initialized and subsequent functions are called to mutate it. The most basic function would be ‘addrest’, which would add ‘0’s to the list, this would create a period of silence in the music. Each instrument then has a specific ‘addnote’ function. The most basic of which would be ‘addnote_theremin’, which takes in a frequency and duration of the note and appends discrete numbers of a sine wave (amplitude :1) with the correct frequency by iterating through a number of discrete time points depending on it’s length. 
+In order to create a wav file of actual music, each note has to create a corresponding wave with the correct frequency and instrument wave pattern. A typical wav file has a resolution of 44100Hz, so each ‘note’ would correspond to around 5512 discrete points on the sound wave. Firstly, a list is initialized and subsequent functions are called to mutate it. The most basic function would be ‘addrest’, which would add ‘0’s to the list, this would create a period of silence in the music. Each instrument then has a specific ‘addnote’ function. The most basic of which would be ‘addnote_theremin’, which takes in a frequency and duration of the note and appends discrete numbers of a sine wave (amplitude :1) with the correct frequency by iterating through a number of discrete time points depending on it’s length.
 
-We also have other instruments such as the violin, piano, guitar and oboe. For these, we looked up some existing data on the internet regarding the fourier transformation of sound waves produced by these instruments, and by recreating these FT results, we could run and inverse fourier transformation to recreate sound waves corresponding to these instruments. The frequency, amplitude and length of the note is incorporated by scaling the artificial FT results appropriately. These functions also have an appropriate tapering for instruments to make it as realistic as possible (a piano would have a sharp ‘attack’ but tapers off by the end of the note). This function then appends the corresponding discrete magnitudes into the list. 
+We also have other instruments such as the violin, piano, guitar and oboe. For these, we looked up some existing data on the internet regarding the fourier transformation of sound waves produced by these instruments, and by recreating these FT results, we could run and inverse fourier transformation to recreate sound waves corresponding to these instruments. The frequency, amplitude and length of the note is incorporated by scaling the artificial FT results appropriately. These functions also have an appropriate tapering for instruments to make it as realistic as possible (a piano would have a sharp ‘attack’ but tapers off by the end of the note). This function then appends the corresponding discrete magnitudes into the list.
 
 The final function would be makesong(), which takes in the dictionary (‘instrument’:’notes’) and creates a list that incorporates the whole song. It first creates a ‘discrete sound wave list’ for each instrument, calling each addnote function appropriately. One special part of this is that the function keeps track of chains of the same note and adds a sound wave with the corresponding duration, so that it doesn’t add discrete notes repeatedly. (This also limits the ‘time between note’ to one eighth of a second, which is insignificant to our hearing). After creating musclists for each existing instrument, the function then sums all these waves and scales it back to an amplitude of 1 to create a final ‘music list’ that has all the instruments playing.
 
@@ -54,7 +66,7 @@ Code
 ===============================================================================
 [(what does each function or class do, what is the high-level role of each piece of the code?)]
 
-Music_database.py 
+Music_database.py
 -------------------------------------------------------------------------------
 This is the main chunk of server side logic, handling the database and creating the music files.
 **request_handler(request)**: This is a request handler that deals with incoming GET and POST requests. If a POST request is received and the server is currently recording, it will save it in the database. If the recording is stopped, this function will handle the music generation by calling various helper functions.
@@ -62,7 +74,7 @@ This is the main chunk of server side logic, handling the database and creating 
 **makeSong(songDict, channelNum)**: This is the function that constructs a music file from a given dictionary of {instrument: notes}. ‘channelNum’ is simply the number of instruments. This function works by looping through every note, then adding the frequencies for each note based on what instrument it is listed under. (See music section above)
 
 **addnote_{instrument}(samplingrate,freq,resolution,alist,duration)**: Each of these functions adds the frequencies for a specific note. ‘Alist’ is the object that contains all the frequency data for the sound file. ‘Freq’ is the associated frequency for a specific note. ‘Samplingrate’, ‘resolution’, and ‘duration’ are all constants.
- 
+
 Music.py
 -------------------------------------------------------------------------------
 This is mainly a testbed file for messing around with sound generation. It is not used anywhere in the final pipeline but it works to generate arbitrary sound files.
@@ -81,9 +93,12 @@ This is the server file that actually serves our main webpage. It firsts loads t
 
 Theremin.ino
 -------------------------------------------------------------------------------
-@alex
+The theremin contains three important helper functions. First, It has Unblocked_http_request(), which allows the ESP to initiate a post request without disrupting the main loop running on the theremin. This prevents any sort of data recording loss from the IR sensor, while also allowing the post request to be completed in much less than 125 ms (the interval between sensor recordings).
+Next, the  change_frequency() function acts as a dictionary of kinds to alter the tone being played by the speaker. It makes use of hardware controlled PWM (ledcWriteTone(channel,frequency)), as well as maps a certain integer to a frequency.
+The third helper function is ui_updater(). This function is called at the end of each loop and servers as a state machine to update the UI of the screen. It contains several modes, the first few of which are dedicated to instrument type selection, which is controlled exclusively by the buttons. Once it moves beyond these states, the theremin is permanently in a state of data recording and posting depending on the amount of time that has gone by.
 
-notes.ino 
+
+notes.ino
 -------------------------------------------------------------------------------
 @cassidy
 
@@ -94,11 +109,13 @@ To setup our repo on an arbitrary server, first download and clone the github re
 
 Challenges
 ===============================================================================
-A challenge we had in creating the ESP to server connection was the problem of how to sync up instruments. Since the ESP receives no information from the server, we had to way to sync up the hardware devices. Instead, we decided to treat the ESPs as constant streams of information since we used a non-blocking post request. The server would record the timestep when note data was received and automatically sync them up when creating the music file. [@alex]. After some experimentation with different time intervals, we finally settled on a one-second interval for recording and sending notes, where the ESPs would send a POST request every second detailing the 8 notes that were played during that time.
+A challenge we had in creating the ESP to server connection was the problem of how to sync up instruments. Since the ESP receives no information from the server, we had to way to sync up the hardware devices. Instead, we decided to treat the ESPs as constant streams of information since we used a non-blocking post request. The server would record the timestep when note data was received and automatically sync them up when creating the music file. The database took care of the autosync by examining the time differences between the start of recording and the posting of notes, as well as the current length of notes posted to the server (assuming measurements were not lost on the ESP). Then, when the “stop recording” button was pressed on the website, it also recorded the timing. Based on the time difference between the start and stop recording, the server determines how many notes were not posted in time to make it to the server and fills in for those gaps with rests. This ensures that the output of the database is a readable dictionary mapping instrument type to a list of integers that all have the same length.
+
+After some experimentation with different time intervals, we finally settled on a one-second interval for recording and sending notes, where the ESPs would send a POST request every second detailing the 8 notes that were played during that time.
 
 Another challenge we faced was the size of the music files. Uncompressed, these music files were becoming really big and it was taking a very long time to load the main webpage when we were naively loading all songs. We eventually found two key optimizations to make this experience smoother. The first was to compress the wavs created on the server into ogg files with the  ‘soundfile’ library. This reduced the filesize of the music files significantly. The second optimization was to only load songs when they were ready to be played, instead of pre-loading every song on page load. We accomplished this by using the iframe system and offloading the base64 processing to ‘play.py’ which is only called when the user selects a song.
 
-[@jma @alex @cassidy anything else????]
+[@jma @cassidy anything else????]
 
 Partslist
 ===============================================================================
@@ -115,7 +132,7 @@ You will also need to upload your code (.ino, .py, everything)
 
 
 
-                            
+
 
 
 
